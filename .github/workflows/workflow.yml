@@ -24,4 +24,4 @@ jobs:
       - name: Analysing code with mypy
         id: mypy
         run: |
-          mypy . --ignore-missing-imports --follow-imports=skip
+          mypy .
