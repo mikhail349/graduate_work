@@ -1,0 +1,26 @@
+@startuml
+actor Client
+actor Admin
+rectangle "Admin Panel" as AdminPanel
+database "Database" as Database
+rectangle "API" as Api
+rectangle "Worker/Scheduler" as WorkerScheduler
+rectangle "Backend" as Backend
+rectangle "Queue" as Queue
+component "Auth Service" as AuthService
+component "Payment Service" as PaymentService
+
+
+Admin -left-> AdminPanel
+AdminPanel -down-> Backend: сохранение \n данных о подписках
+Client -down-> Api : Покупка \n подписки
+WorkerScheduler -up-> Backend : Запрос информации\nоб активных подписках
+WorkerScheduler -> PaymentService : Автоматический платеж
+Backend -left-> Database
+Backend -left-> Queue
+Queue --> AuthService
+
+Api -down-> PaymentService : Оплата
+PaymentService -up-> Api : Уведомление \n о статусе платежа
+Api -left-> Backend : Запрос информации о подписках
+@enduml
