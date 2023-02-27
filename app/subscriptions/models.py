@@ -3,6 +3,11 @@ from django.contrib.auth import get_user_model
 from django.utils.translation import gettext as _
 
 
+class User(models.Model):
+    """Модель пользователя из сервиса Auth."""
+    id = models.UUIDField(primary_key=True, unique=True)
+
+
 class Subscription(models.Model):
     """Модель подписки."""
     name = models.CharField(max_length=255)
@@ -23,7 +28,7 @@ class SubscriptionHistory(models.Model):
         ACTIVATE = 1
         DEACTIVATE = 2
 
-    user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
     subscription = models.ForeignKey(Subscription, on_delete=models.PROTECT)
     event = models.IntegerField(choices=Event.choices)
     event_dt = models.DateTimeField(auto_now_add=True)
