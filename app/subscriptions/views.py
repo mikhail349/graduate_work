@@ -7,5 +7,4 @@ from auth.decorators import user_required
 @api_view(['GET'])
 @user_required
 def get_subscriptions(request, user):
-    print(user)
-    return JsonResponse('Ok', safe=False)
+    return JsonResponse(user, safe=False)
