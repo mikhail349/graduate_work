@@ -23,6 +23,12 @@ class SubscriptionAPI(APIView):
         """Подключить подписку."""
         # сконструировать запрос для воркерка/celery
         return Response()
+    
+    @user_required
+    def delete(self, request, user):
+        """Отменить подписку."""
+        # сконструировать запрос для воркерка/celery
+        return Response()        
 
 
 class SubscriptionRender(APIView):
