@@ -8,11 +8,22 @@ from auth import messages as msg
 from config.components.jwt import JWT_AUTH
 
 
-def response_401(msg: str):
-    return JsonResponse({'msg': msg}, safe=False, status=HTTPStatus.UNAUTHORIZED)
+def response_401(msg: str) -> JsonResponse:
+    """Вернуть http ответ 401 в формате json.
+
+    Args:
+        msg: текст ошибки
+
+    Returns:
+        JsonResponse: http ответ в формате json
+
+    """
+    return JsonResponse({'msg': msg}, safe=False,
+                        status=HTTPStatus.UNAUTHORIZED)
 
 
 def user_required(function):
+    """Декоратор аутентификации пользователя из сервиса Auth."""
     @functools.wraps(function)
     def wrap(request, *args, **kwargs):
         if 'HTTP_AUTHORIZATION' not in request.META:
@@ -22,7 +33,7 @@ def user_required(function):
 
         if len(auth_header) != 2:
             return response_401(msg.WRONG_HEADER)
-        
+
         token = auth_header[1]
         try:
             payload = jwt.decode(
@@ -35,7 +46,7 @@ def user_required(function):
 
         except jwt.InvalidTokenError:
             return response_401(msg.INVALID_SIGNATURE)
-        
+
         if 'user_id' not in payload:
             return response_401(msg.INVALID_PAYLOAD)
 
