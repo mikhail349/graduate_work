@@ -1,4 +1,4 @@
-name: Notifications CI
+name: Linter CI
 
 on:
   pull_request:
@@ -20,7 +20,7 @@ jobs:
       - name: Lint with flake8
         id: flake
         run: |
-          flake8 .
+          flake8 app --config=app/setup.cfg
       - name: Analysing code with mypy
         id: mypy
         run: |
