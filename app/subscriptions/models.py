@@ -12,6 +12,7 @@ class Subscription(models.Model):
         help_text=_('A role name from Auth Service')
     )
     is_active = models.BooleanField(default=False)
+    price = models.IntegerField(help_text=_('Stores cents'))
 
 
 class SubscriptionHistory(models.Model):
