@@ -1,3 +1,11 @@
-# from django.shortcuts import render
+from django.http import JsonResponse
+from rest_framework.decorators import api_view
 
-# Create your views here.
+from auth.decorators import user_required
+
+
+@api_view(['GET'])
+@user_required
+def get_subscriptions(request, user):
+    print(user)
+    return JsonResponse('Ok', safe=False)
