@@ -6,7 +6,7 @@ from pydantic import BaseModel
 class PaymentDetails(BaseModel):
     """Класс данных платежа."""
 
-    amount: float
+    amount: int
     currency: str
     account_id: str
 
