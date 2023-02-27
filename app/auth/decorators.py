@@ -25,7 +25,7 @@ def response_401(msg: str) -> JsonResponse:
 def user_required(function):
     """Декоратор аутентификации пользователя из сервиса Auth."""
     @functools.wraps(function)
-    def wrap(request, *args, **kwargs):
+    def wrap(self, request, *args, **kwargs):
         if 'HTTP_AUTHORIZATION' not in request.META:
             return response_401(msg.NO_CREDENTIALS)
 
@@ -50,5 +50,5 @@ def user_required(function):
         if 'user_id' not in payload:
             return response_401(msg.INVALID_PAYLOAD)
 
-        return function(request, payload['user_id'], *args, **kwargs)
+        return function(self, request, payload['user_id'], *args, **kwargs)
     return wrap
