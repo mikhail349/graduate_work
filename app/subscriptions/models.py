@@ -30,7 +30,7 @@ class Subscription(models.Model):
     @property
     def price(self) -> float:
         """Свойство - цена в рублях.
-        
+
         Returns:
             float: цена в рублях
 
@@ -38,8 +38,7 @@ class Subscription(models.Model):
         return money_to_float(self.int_price)
 
     def __str__(self) -> str:
-        """
-        Магический метод текстового представления модели.
+        """Магический метод текстового представления модели.
 
         Returns:
             str: текстовое представление модели
@@ -58,8 +57,7 @@ class User(models.Model):
     id = models.UUIDField(primary_key=True)
 
     def __str__(self) -> str:
-        """
-        Магический метод текстового представления модели.
+        """Магический метод текстового представления модели.
 
         Returns:
             str: текстовое представление модели
@@ -111,7 +109,7 @@ class PaymentHistory(models.Model):
     @property
     def payment_amount(self) -> float:
         """Свойство - сумма платежа в рублях.
-        
+
         Returns:
             float: сумма платежа в рублях
 
@@ -119,14 +117,13 @@ class PaymentHistory(models.Model):
         return money_to_float(self.int_payment_amount)
 
     def __str__(self) -> str:
-        """
-        Магический метод текстового представления модели.
+        """Магический метод текстового представления модели.
 
         Returns:
             str: текстовое представление модели
 
         """
         return f'{self.user} {self.subscription_name}'
-    
+
     class Meta:
         verbose_name_plural = _('Payments history')

@@ -8,7 +8,11 @@ from utils.converters import money_to_int
 class PaymentHistoryForm(forms.ModelForm):
     """Форма истории платежа."""
 
-    int_payment_amount = forms.DecimalField(label=_('Payment amount'), max_digits=6, decimal_places=2)
+    int_payment_amount = forms.DecimalField(
+        label=_('Payment amount'),
+        max_digits=6,
+        decimal_places=2
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -27,7 +31,11 @@ class PaymentHistoryForm(forms.ModelForm):
 class SubscriptionForm(forms.ModelForm):
     """Форма подписки."""
 
-    int_price = forms.DecimalField(label=_('Price'), max_digits=6, decimal_places=2)
+    int_price = forms.DecimalField(
+        label=_('Price'),
+        max_digits=6,
+        decimal_places=2
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
