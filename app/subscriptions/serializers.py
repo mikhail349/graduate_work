@@ -8,8 +8,16 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
     price = serializers.SerializerMethodField()
 
-    def get_price(self, obj):
-        """Представить цену с копейками."""
+    def get_price(self, obj) -> float:
+        """Представить цену в рублях.
+
+        Args:
+            obj: объект `Subscription`
+
+        Returns:
+            float: цена в рублях
+
+        """
         return obj.price / 100
 
     class Meta:
