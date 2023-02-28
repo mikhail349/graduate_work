@@ -3,7 +3,18 @@ from django.utils.translation import gettext as _
 
 
 class Subscription(models.Model):
-    """Модель подписки."""
+    """Модель подписки.
+
+    Fields:
+        id: ИД подписки
+        name: название
+        description: описание
+        months_duration: продолжительность действия (мес.)
+        role_name: название соответствюущей роли из сервиса Auth
+        is_active: отметка, что подписка действительна
+        price: цена (в копейках)
+
+    """
     name = models.CharField(max_length=255)
     description = models.TextField()
     months_duration = models.IntegerField()
@@ -26,7 +37,12 @@ class Subscription(models.Model):
 
 
 class User(models.Model):
-    """Модель пользователя из сервиса Auth."""
+    """Модель пользователя из сервиса Auth.
+
+    Fields:
+        id: ИД пользователя
+
+    """
     id = models.UUIDField(primary_key=True)
 
     def __str__(self) -> str:
@@ -39,8 +55,18 @@ class User(models.Model):
         """
         return str(self.id)
 
+
 class UserSubscription(models.Model):
-    """Модель подписки пользователя."""
+    """Модель подписки пользователя.
+
+    Fields:
+        user: пользователь из сервиса Auth
+        subscription: подписка
+        start_date: дата начала действия подписки
+        end_date: дата окончания действия подписки
+        auto_renewal: отметка об автоматическом продлении
+
+    """
 
     user = models.OneToOneField(
         User,
@@ -54,7 +80,16 @@ class UserSubscription(models.Model):
 
 
 class PaymentHistory(models.Model):
-    """История платежей пользователей."""
+    """История платежей пользователей.
+
+    Fields:
+        id: ИД записи
+        user: пользователь из сервиса Auth
+        subscription_name: название подписки
+        payment_amount: сумма платежа (в копейках)
+        payment_dt: дата и время платежа
+
+    """
 
     user = models.ForeignKey(User, on_delete=models.PROTECT)
     subscription_name = models.CharField(max_length=255)

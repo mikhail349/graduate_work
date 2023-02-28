@@ -9,7 +9,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from auth.decorators import user_required
-from subscriptions.models import PaymentHistory, Subscription, User, UserSubscription
+from subscriptions.models import (
+    PaymentHistory, Subscription, User, UserSubscription
+)
 from subscriptions.serializers import SubscriptionSerializer
 
 
@@ -43,7 +45,9 @@ class SubscriptionAPI(APIView):
                 user=user,
                 subscription=subscription,
                 start_date=today,
-                end_date=today + relativedelta(months=subscription.months_duration),
+                end_date=(
+                    today + relativedelta(months=subscription.months_duration)
+                ),
                 auto_renewal=True,
             )
 
@@ -59,7 +63,7 @@ class SubscriptionAPI(APIView):
     def delete(self, request: HttpRequest, user_id: str):
         """Отменить подписку."""
         # TODO: сконструировать запрос для воркерка/celery
-        
+
         user_subscription = UserSubscription.objects.get(user_id)
         user_subscription.auto_renewal = False
         user_subscription.save()
