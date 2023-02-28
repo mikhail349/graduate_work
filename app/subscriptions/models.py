@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils.translation import gettext as _
 
+from utils.converters import money_to_float
+
 
 class Subscription(models.Model):
     """Модель подписки.
@@ -12,7 +14,7 @@ class Subscription(models.Model):
         months_duration: продолжительность действия (мес.)
         role_name: название соответствюущей роли из сервиса Auth
         is_active: отметка, что подписка действительна
-        price: цена (в копейках)
+        int_price: цена (в копейках)
 
     """
     name = models.CharField(max_length=255)
@@ -23,7 +25,17 @@ class Subscription(models.Model):
         help_text=_('A role name from Auth Service')
     )
     is_active = models.BooleanField(default=False)
-    price = models.IntegerField(help_text=_('Storing in cents'))
+    int_price = models.IntegerField(help_text=_('Storing in cents'))
+
+    @property
+    def price(self) -> float:
+        """Свойство - цена в рублях.
+        
+        Returns:
+            float: цена в рублях
+
+        """
+        return money_to_float(self.int_price)
 
     def __str__(self) -> str:
         """
@@ -93,8 +105,18 @@ class PaymentHistory(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.PROTECT)
     subscription_name = models.CharField(max_length=255)
-    payment_amount = models.IntegerField(help_text=_('Storing in cents'))
+    int_payment_amount = models.IntegerField(help_text=_('Storing in cents'))
     payment_dt = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def payment_amount(self) -> float:
+        """Свойство - сумма платежа в рублях.
+        
+        Returns:
+            float: сумма платежа в рублях
+
+        """
+        return money_to_float(self.int_payment_amount)
 
     def __str__(self) -> str:
         """
@@ -105,3 +127,6 @@ class PaymentHistory(models.Model):
 
         """
         return f'{self.user} {self.subscription_name}'
+    
+    class Meta:
+        verbose_name_plural = _('Payments history')
