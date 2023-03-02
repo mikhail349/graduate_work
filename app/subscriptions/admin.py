@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from subscriptions.forms import PaymentHistoryForm, SubscriptionForm
-from subscriptions.models import PaymentHistory, Subscription, User
+from subscriptions.models import PaymentHistory, Subscription, User, UserSubscription
 
 
 class SubscriptionAdmin(admin.ModelAdmin):
@@ -17,6 +17,14 @@ class PaymentHistoryAdmin(admin.ModelAdmin):
                     'payment_amount', 'payment_dt')
     date_hierarchy = 'payment_dt'
 
+    def has_add_permission(self, request, obj=None):
+        return False
+    
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 class UserAdmin(admin.ModelAdmin):
     list_display = ('id',)
@@ -25,3 +33,4 @@ class UserAdmin(admin.ModelAdmin):
 admin.site.register(Subscription, SubscriptionAdmin)
 admin.site.register(PaymentHistory, PaymentHistoryAdmin)
 admin.site.register(User, UserAdmin)
+admin.site.register(UserSubscription)
