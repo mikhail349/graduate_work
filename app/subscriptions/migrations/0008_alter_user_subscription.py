@@ -11,11 +11,14 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RemoveField(
+            model_name='usersubscription',
+            name='user',
+        ),
         migrations.AddField(
             model_name='usersubscription',
             name='id',
-            field=models.BigAutoField(auto_created=True, default=1, primary_key=True, serialize=False, verbose_name='ID'),
-            preserve_default=False,
+            field=models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID'),
         ),
         migrations.AddField(
             model_name='usersubscription',
@@ -23,7 +26,7 @@ class Migration(migrations.Migration):
             field=models.TextField(default=''),
             preserve_default=False,
         ),
-        migrations.AlterField(
+        migrations.AddField(
             model_name='usersubscription',
             name='user',
             field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='subscriptions.user'),
