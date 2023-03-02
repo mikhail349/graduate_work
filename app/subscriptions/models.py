@@ -12,7 +12,7 @@ class Subscription(models.Model):
         name: название
         description: описание
         months_duration: продолжительность действия (мес.)
-        role_name: название соответствюущей роли из сервиса Auth
+        role_name: название соответствюущей роли сервиса Auth
         is_active: отметка, что подписка действительна
         int_price: цена (в копейках)
 
@@ -48,7 +48,7 @@ class Subscription(models.Model):
 
 
 class User(models.Model):
-    """Модель пользователя из сервиса Auth.
+    """Модель пользователя сервиса Auth.
 
     Fields:
         id: ИД пользователя
@@ -70,23 +70,29 @@ class UserSubscription(models.Model):
     """Модель подписки пользователя.
 
     Fields:
-        user: пользователь из сервиса Auth
+        user: пользователь сервиса Auth
         subscription: подписка
         start_date: дата начала действия подписки
         end_date: дата окончания действия подписки
         auto_renewal: отметка об автоматическом продлении
+        token: токен платежной системы
 
     """
 
-    user = models.OneToOneField(
-        User,
-        on_delete=models.CASCADE,
-        primary_key=True
-    )
+    user = models.ForeignKey(User, on_delete=models.PROTECT)
     subscription = models.ForeignKey(Subscription, on_delete=models.PROTECT)
     start_date = models.DateField()
     end_date = models.DateField()
     auto_renewal = models.BooleanField(default=True)
+    token = models.TextField()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'subscription'],
+                name='user_subscription_unique'
+            )
+        ]
 
 
 class PaymentHistory(models.Model):
@@ -94,7 +100,7 @@ class PaymentHistory(models.Model):
 
     Fields:
         id: ИД записи
-        user: пользователь из сервиса Auth
+        user: пользователь сервиса Auth
         subscription_name: название подписки
         payment_amount: сумма платежа (в копейках)
         payment_dt: дата и время платежа
