@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import F, Q
 from django.utils.translation import gettext as _
 
 from utils.converters import money_to_float
@@ -90,8 +91,12 @@ class UserSubscription(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'subscription'],
-                name='user_subscription_unique'
-            )
+                name='user_subscription_user_subscription_unique'
+            ),
+            models.CheckConstraint(
+                check=Q(start_date__lte=F('end_date')),
+                name="user_subscription_start_date_le_end_date"
+            ),
         ]
 
 
