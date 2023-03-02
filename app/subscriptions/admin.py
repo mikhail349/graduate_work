@@ -1,7 +1,9 @@
 from django.contrib import admin
 
 from subscriptions.forms import PaymentHistoryForm, SubscriptionForm
-from subscriptions.models import PaymentHistory, Subscription, User, UserSubscription
+from subscriptions.models import (
+    PaymentHistory, Subscription, User, UserSubscription
+)
 
 
 class SubscriptionAdmin(admin.ModelAdmin):
@@ -19,12 +21,13 @@ class PaymentHistoryAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request, obj=None):
         return False
-    
+
     def has_change_permission(self, request, obj=None):
         return False
 
     def has_delete_permission(self, request, obj=None):
         return False
+
 
 class UserAdmin(admin.ModelAdmin):
     list_display = ('id',)
