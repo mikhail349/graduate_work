@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models import F, Q
 from django.utils.translation import gettext as _
 
+from subscriptions.fields import CurrencyField
 from utils.converters import money_to_float
 
 
@@ -16,6 +17,7 @@ class Subscription(models.Model):
         role_name: название соответствюущей роли сервиса Auth
         is_active: отметка, что подписка действительна
         int_price: цена (в копейках)
+        currency: код валюты
 
     """
     name = models.CharField(max_length=255)
@@ -27,6 +29,7 @@ class Subscription(models.Model):
     )
     is_active = models.BooleanField(default=False)
     int_price = models.IntegerField(help_text=_('Storing in cents'))
+    currency = CurrencyField()
 
     @property
     def price(self) -> float:
@@ -76,7 +79,7 @@ class UserSubscription(models.Model):
         start_date: дата начала действия подписки
         end_date: дата окончания действия подписки
         auto_renewal: отметка об автоматическом продлении
-        token: токен платежной системы
+        payment_system_subscription_id: ИД подписки из платежной системы
 
     """
 
@@ -85,7 +88,7 @@ class UserSubscription(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     auto_renewal = models.BooleanField(default=True)
-    token = models.TextField()
+    payment_system_subscription_id = models.TextField()
 
     class Meta:
         constraints = [
@@ -107,7 +110,8 @@ class PaymentHistory(models.Model):
         id: ИД записи
         user: пользователь сервиса Auth
         subscription_name: название подписки
-        payment_amount: сумма платежа (в копейках)
+        int_payment_amount: сумма платежа (в копейках)
+        currency: код валюты
         payment_dt: дата и время платежа
 
     """
@@ -115,6 +119,7 @@ class PaymentHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.PROTECT)
     subscription_name = models.CharField(max_length=255)
     int_payment_amount = models.IntegerField(help_text=_('Storing in cents'))
+    currency = CurrencyField()
     payment_dt = models.DateTimeField(auto_now_add=True)
 
     @property
