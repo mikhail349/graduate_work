@@ -3,8 +3,8 @@ from django.db import models
 
 
 class CurrencyChoices(models.TextChoices):
-    """Перечисление кодов валют."""
-    RUB = '643'
+    """Перечисление ISO кодов валют."""
+    RUB = 'rub'
 
 
 class MoneyField(forms.DecimalField):
