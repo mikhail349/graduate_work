@@ -3,7 +3,7 @@ from django.db import models
 
 
 class CurrencyChoices(models.TextChoices):
-    """Перечисление кодов валют."""
+    """Перечисление ISO кодов валют."""
     RUB = 'rub'
 
 
