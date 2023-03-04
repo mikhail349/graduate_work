@@ -10,7 +10,7 @@ class CurrencyField(models.CharField):
     """Поле валюты."""
 
     def __init__(self, *args, **kwargs):
-        kwargs['max_length'] = 104
-        kwargs['choices'] = Currency.choices
-        kwargs['default'] = Currency.RUB
+        kwargs.setdefault('max_length', 3)
+        kwargs.setdefault('choices', Currency.choices)
+        kwargs.setdefault('default', Currency.RUB)
         super().__init__(*args, **kwargs)
