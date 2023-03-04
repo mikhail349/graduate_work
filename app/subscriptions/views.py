@@ -30,12 +30,12 @@ class SubscriptionAPI(APIView):
     def post(self, request: HttpRequest):
         """Подключить подписку. Вызывается из ПС."""
         # TODO: сконструировать запрос для воркерка/celery
-        body = json.loads(request.body.decode('utf-8'))
+        body = request.data
 
         user_id = body['metadata']['user_id']
         subscription_id = body['metadata']['subscription_id']
 
-        subscription = Subscription.objects.get(subscription_id)
+        subscription = Subscription.objects.get(id=subscription_id)
         today = timezone.now().date()
 
         with transaction.atomic():
@@ -54,7 +54,7 @@ class SubscriptionAPI(APIView):
             PaymentHistory.objects.create(
                 user=user,
                 subscription_name=subscription.name,
-                payment_amount=body['paymentAmount'] * 100
+                int_payment_amount=body['paymentAmount'] * 100
             )
 
         return Response()
