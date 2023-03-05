@@ -74,7 +74,6 @@ class StripeAPI(APIView):
                 data={'msg': msg.INVALID_SIGNATURE},
                 status=HTTPStatus.UNAUTHORIZED,
             )
-        print(event)
 
         method = EVENTS.get(event['type'])
         if method:
