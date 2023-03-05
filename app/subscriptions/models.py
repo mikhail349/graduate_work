@@ -20,9 +20,19 @@ class Subscription(models.Model):
         currency: код валюты
 
     """
+
+    class DurationChoices(models.TextChoices):
+        """Перечисление продолжительностей действия подписки."""
+        MONTHLY = 'month'
+        YEARLY = 'year'
+
     name = models.CharField(max_length=255)
     description = models.TextField()
-    months_duration = models.IntegerField()
+    duration = models.CharField(
+        max_length=5,
+        choices=DurationChoices.choices,
+        default=DurationChoices.MONTHLY,
+    )
     role_name = models.CharField(
         max_length=255,
         help_text=_('A role name from Auth Service')
@@ -52,13 +62,15 @@ class Subscription(models.Model):
 
 
 class User(models.Model):
-    """Модель пользователя сервиса Auth.
+    """Модель пользователя.
 
     Fields:
-        id: ИД пользователя
+        id: ИД пользователя из сервиса Auth
+        payment_system_customer_id: ИД пользователя в платежном сервисе
 
     """
     id = models.UUIDField(primary_key=True)
+    payment_system_customer_id = models.CharField(max_length=255, unique=True)
 
     def __str__(self) -> str:
         """Магический метод текстового представления модели.

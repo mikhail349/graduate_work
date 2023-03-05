@@ -8,32 +8,37 @@ from subscriptions.models import (
 
 class SubscriptionAdmin(admin.ModelAdmin):
     form = SubscriptionForm
-    list_display = ('name', 'description', 'months_duration',
+    list_display = ('name', 'description', 'duration',
                     'role_name', 'is_active', 'price')
     list_filter = ('is_active',)
 
-
-class PaymentHistoryAdmin(admin.ModelAdmin):
-    form = PaymentHistoryForm
-    list_display = ('user', 'subscription_name',
-                    'payment_amount', 'payment_dt')
-    date_hierarchy = 'payment_dt'
-
-    def has_add_permission(self, request, obj=None):
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        return False
+    def get_readonly_fields(self, request, obj=None):
+        if not obj:
+            return []
+        return ['duration', 'int_price', 'currency']
 
 
-class UserAdmin(admin.ModelAdmin):
-    list_display = ('id',)
+# class PaymentHistoryAdmin(admin.ModelAdmin):
+#     form = PaymentHistoryForm
+#     list_display = ('user', 'subscription_name',
+#                     'payment_amount', 'payment_dt')
+#     date_hierarchy = 'payment_dt'
+
+#     def has_add_permission(self, request, obj=None):
+#         return False
+
+#     def has_change_permission(self, request, obj=None):
+#         return False
+
+#     def has_delete_permission(self, request, obj=None):
+#         return False
+
+
+# class UserAdmin(admin.ModelAdmin):
+#     list_display = ('id',)
 
 
 admin.site.register(Subscription, SubscriptionAdmin)
-admin.site.register(PaymentHistory, PaymentHistoryAdmin)
-admin.site.register(User, UserAdmin)
-admin.site.register(UserSubscription)
+# admin.site.register(PaymentHistory, PaymentHistoryAdmin)
+# admin.site.register(User, UserAdmin)
+# admin.site.register(UserSubscription)
