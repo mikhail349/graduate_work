@@ -1,4 +1,3 @@
-import json
 import uuid
 
 from dateutil.relativedelta import relativedelta
@@ -13,6 +12,7 @@ from subscriptions.models import (
     PaymentHistory, Subscription, User, UserSubscription
 )
 from subscriptions.serializers import SubscriptionSerializer
+from subscriptions.tasks_ import add_role, delete_role
 
 
 class SubscriptionAPI(APIView):
@@ -29,7 +29,6 @@ class SubscriptionAPI(APIView):
 
     def post(self, request: HttpRequest):
         """Подключить подписку. Вызывается из ПС."""
-        # TODO: сконструировать запрос для воркерка/celery
         body = request.data
 
         user_id = body['metadata']['user_id']
@@ -57,16 +56,19 @@ class SubscriptionAPI(APIView):
                 int_payment_amount=body['paymentAmount'] * 100
             )
 
+        add_role.delay(user_id, subscription.role_name)
+
         return Response()
 
     @user_required
     def delete(self, request: HttpRequest, user_id: str):
         """Отменить подписку."""
-        # TODO: сконструировать запрос для воркерка/celery
-
-        user_subscription = UserSubscription.objects.get(user_id)
+        user_subscription = UserSubscription.objects.get(user__id=user_id)
         user_subscription.auto_renewal = False
         user_subscription.save()
+
+        role = user_subscription.subscription.role_name
+        delete_role.delay(user_id, role)
 
         return Response()
 
