@@ -80,7 +80,10 @@ class ClientSubscription(models.Model):
     start_date = models.DateField()
     end_date = models.DateField()
     auto_renewal = models.BooleanField(default=True)
-    payment_system_subscription_id = models.CharField(max_length=255, unique=True)
+    payment_system_subscription_id = models.CharField(
+        max_length=255,
+        unique=True,
+    )
 
     class Meta:
         constraints = [

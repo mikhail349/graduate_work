@@ -25,7 +25,7 @@ class Customer(models.Model):
     Fields:
         id: ИД кастомера из Stripe
         сlient: Ссылка на модель `Client`
-        
+
     """
     id = models.CharField(max_length=255, primary_key=True)
     client = models.OneToOneField(Client, on_delete=models.CASCADE)

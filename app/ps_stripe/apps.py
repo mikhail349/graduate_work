@@ -6,4 +6,4 @@ class PsStripeConfig(AppConfig):
     name = 'ps_stripe'
 
     def ready(self):
-        import ps_stripe.signals
+        import ps_stripe.signals  # noqa: F401

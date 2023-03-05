@@ -8,7 +8,12 @@ from ps_stripe.models import Customer, Product
 
 
 @receiver(post_save, sender=Subscription)
-def create_update_product(sender, instance: Subscription, created: bool, **kwargs):
+def create_update_product(
+    sender,
+    instance: Subscription,
+    created: bool,
+    **kwargs,
+):
     """Создать или обновить продукт и цену в stripe."""
     if created:
         stripe_product = stripe.Product.create(
@@ -64,6 +69,7 @@ def create_customer(sender, instance: Client, created: bool, **kwargs):
             id=stripe_customer['id'],
             client=instance
         )
+
 
 @receiver(pre_delete, sender=Client)
 def delete_customer(sender, instance: Client, **kwargs):
