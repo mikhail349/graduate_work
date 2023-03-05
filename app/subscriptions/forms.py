@@ -35,8 +35,6 @@ class SubscriptionForm(forms.ModelForm):
         instance = kwargs.get('instance')
         if instance:
             self.initial['int_price'] = instance.price
-            # self.fields['int_price'].widget.attrs['readonly'] = True
-
 
     def clean_int_price(self):
         return money_to_int(self.cleaned_data['int_price'])

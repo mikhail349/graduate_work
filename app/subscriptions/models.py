@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models import F, Q
 from django.utils.translation import gettext as _
 
+from clients.models import Client
 from subscriptions.fields import CurrencyField
 from utils.converters import money_to_float
 
@@ -61,32 +62,11 @@ class Subscription(models.Model):
         return self.name
 
 
-class User(models.Model):
-    """Модель пользователя.
+class ClientSubscription(models.Model):
+    """Модель подписки клиента.
 
     Fields:
-        id: ИД пользователя из сервиса Auth
-        payment_system_customer_id: ИД пользователя в платежном сервисе
-
-    """
-    id = models.UUIDField(primary_key=True)
-    payment_system_customer_id = models.CharField(max_length=255, unique=True)
-
-    def __str__(self) -> str:
-        """Магический метод текстового представления модели.
-
-        Returns:
-            str: текстовое представление модели
-
-        """
-        return str(self.id)
-
-
-class UserSubscription(models.Model):
-    """Модель подписки пользователя.
-
-    Fields:
-        user: пользователь сервиса Auth
+        client: клиент
         subscription: подписка
         start_date: дата начала действия подписки
         end_date: дата окончания действия подписки
@@ -95,22 +75,22 @@ class UserSubscription(models.Model):
 
     """
 
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    client = models.ForeignKey(Client, on_delete=models.PROTECT)
     subscription = models.ForeignKey(Subscription, on_delete=models.PROTECT)
     start_date = models.DateField()
     end_date = models.DateField()
     auto_renewal = models.BooleanField(default=True)
-    payment_system_subscription_id = models.TextField()
+    payment_system_subscription_id = models.CharField(max_length=255, unique=True)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'subscription'],
-                name='user_subscription_user_subscription_unique'
+                fields=['client', 'subscription'],
+                name='client_subscription_client_subscription_unique'
             ),
             models.CheckConstraint(
                 check=Q(start_date__lte=F('end_date')),
-                name="user_subscription_start_date_le_end_date"
+                name="client_subscription_start_date_le_end_date"
             ),
         ]
 
@@ -120,7 +100,7 @@ class PaymentHistory(models.Model):
 
     Fields:
         id: ИД записи
-        user: пользователь сервиса Auth
+        client: клиент
         subscription_name: название подписки
         int_payment_amount: сумма платежа (в копейках)
         currency: код валюты
@@ -128,11 +108,11 @@ class PaymentHistory(models.Model):
 
     """
 
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
+    client = models.ForeignKey(Client, on_delete=models.PROTECT)
     subscription_name = models.CharField(max_length=255)
     int_payment_amount = models.IntegerField(help_text=_('Storing in cents'))
     currency = CurrencyField()
-    payment_dt = models.DateTimeField(auto_now_add=True)
+    payment_dt = models.DateTimeField()
 
     @property
     def payment_amount(self) -> float:
@@ -151,7 +131,7 @@ class PaymentHistory(models.Model):
             str: текстовое представление модели
 
         """
-        return f'{self.user} {self.subscription_name}'
+        return f'{self.client} {self.subscription_name}'
 
     class Meta:
         verbose_name_plural = _('Payments history')

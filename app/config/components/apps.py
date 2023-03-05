@@ -8,4 +8,5 @@ INSTALLED_APPS = [
     'rest_framework',
     'subscriptions.apps.SubscriptionsConfig',
     'ps_stripe.apps.PsStripeConfig',
+    'clients.apps.ClientsConfig',
 ]
