@@ -44,7 +44,7 @@ def create_subscription(data):
         )
 
     add_role(client.pk, subscription.role_name)
-    
+
 
 def delete_subscription(data):
     client_subscription = ClientSubscription.objects.get(
