@@ -39,4 +39,6 @@ include(
     'components/database.py',
     'components/jwt.py',
     'components/payment_service.py',
+    'components/celery.py',
+    'components/auth_api.py',
 )
