@@ -19,8 +19,8 @@ class AuthClient:
 
     def get_token(self):
         data = {
-            "password": os.environ.get("AUTH_PASSWORD"),
-            "username": os.environ.get("AUTH_USERNAME"),
+            "password": self.password,
+            "username": self.login,
         }
         res = requests.post(self.login_endpoint, json=data)
 
