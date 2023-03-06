@@ -10,4 +10,5 @@ done
 python manage.py migrate
 python manage.py createsuperuser --noinput
 python manage.py collectstatic --noinput
+celery -A config worker -D --loglevel=INFO
 uwsgi --strict --ini config/uwsgi.ini

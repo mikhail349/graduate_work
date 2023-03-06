@@ -38,4 +38,7 @@ include(
     'components/auth_password_validators.py',
     'components/database.py',
     'components/jwt.py',
+    'components/payment_service.py',
+    'components/celery.py',
+    'components/auth_api.py',
 )

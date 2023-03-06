@@ -7,4 +7,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'subscriptions.apps.SubscriptionsConfig',
+    'ps_stripe.apps.PsStripeConfig',
+    'clients.apps.ClientsConfig',
 ]
