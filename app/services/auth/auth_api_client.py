@@ -2,21 +2,19 @@ import os
 import uuid
 
 import requests
-from dotenv import load_dotenv
-
-load_dotenv(dotenv_path="../app/.env")
+from django.conf import settings
 
 
 class AuthClient:
     """Класс для взаимодействия с сервисом auth."""
 
     def __init__(self):
-        self.url = os.environ.get("AUTH_API")
-        self.login = os.environ.get("AUTH_USERNAME")
-        self.password = os.environ.get("AUTH_PASSWORD")
-        self.login_endpoint = self.url + "api/v1/user/login"
+        self.url = settings.AUTH_API
+        self.login = settings.AUTH_USERNAME
+        self.password = settings.AUTH_PASSWORD
+        self.login_endpoint = self.url + settings.AUTH_LOGIN_ENDPOINT
         self.user_roles_endpoint = (
-            self.url + "api/v1/user/{user_id}/roles/{role_name}"
+            self.url + settings.AUTH_USER_ROLE_ENDPOINT
         )
 
     def get_token(self):
