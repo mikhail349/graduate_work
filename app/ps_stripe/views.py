@@ -2,6 +2,7 @@ from datetime import datetime
 from http import HTTPStatus
 
 import stripe
+from django.db import transaction
 from django.conf import settings
 from django.http import HttpRequest
 from rest_framework.response import Response
@@ -10,6 +11,7 @@ from rest_framework.views import APIView
 from ps_stripe import messages as msg
 from ps_stripe.models import Customer, Product
 from subscriptions.models import ClientSubscription, PaymentHistory
+from subscriptions.tasks import add_role, delete_role
 
 
 def create_subscription(data):
@@ -23,29 +25,36 @@ def create_subscription(data):
     currency = data['plan']['currency']
     payment_dt = datetime.fromtimestamp(data['plan']['created'])
 
-    ClientSubscription.objects.create(
-        client=client,
-        subscription=subscription,
-        start_date=start_date,
-        end_date=end_date,
-        auto_renewal=auto_renewal,
-        payment_system_subscription_id=stripe_subscription_id,
-    )
+    with transaction.atomic():
+        ClientSubscription.objects.create(
+            client=client,
+            subscription=subscription,
+            start_date=start_date,
+            end_date=end_date,
+            auto_renewal=auto_renewal,
+            payment_system_subscription_id=stripe_subscription_id,
+        )
 
-    PaymentHistory.objects.create(
-        client=client,
-        subscription_name=subscription.name,
-        int_payment_amount=int_payment_amount,
-        currency=currency,
-        payment_dt=payment_dt,
-    )
+        PaymentHistory.objects.create(
+            client=client,
+            subscription_name=subscription.name,
+            int_payment_amount=int_payment_amount,
+            currency=currency,
+            payment_dt=payment_dt,
+        )
 
+    add_role(client.pk, subscription.role_name)
+    
 
 def delete_subscription(data):
     client_subscription = ClientSubscription.objects.get(
         payment_system_subscription_id=data['id']
     )
     client_subscription.delete()
+    delete_role(
+        client_subscription.client.pk,
+        client_subscription.subscription.role_name,
+    )
 
 
 EVENTS = {
