@@ -34,11 +34,6 @@ class PaymentHistoryAdmin(admin.ModelAdmin):
         return False
 
 
-# class UserAdmin(admin.ModelAdmin):
-#     list_display = ('id',)
-
-
 admin.site.register(Subscription, SubscriptionAdmin)
 admin.site.register(PaymentHistory, PaymentHistoryAdmin)
-# admin.site.register(User, UserAdmin)
 admin.site.register(ClientSubscription)
