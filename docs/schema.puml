@@ -3,24 +3,20 @@ actor Client
 actor Admin
 rectangle "Admin Panel" as AdminPanel
 database "Database" as Database
-rectangle "API" as Api
-rectangle "Worker/Scheduler" as WorkerScheduler
 rectangle "Backend" as Backend
-rectangle "Queue" as Queue
+rectangle Celery
 component "Auth Service" as AuthService
 component "Payment Service" as PaymentService
 
+Client -down-> PaymentService : Покупка / отмена \n подписки
+Client --> Backend : Создание\nпокупателя
+PaymentService -down-> Backend : Уведомление \n о покупке / отмене
+Backend -down-> Database : 1. Сохранение истории платежей \n 2. Создание / удаление записей о тек. подписках
+Backend -up-> PaymentService : crud подписок,\nпокупателей
+Admin -down-> AdminPanel : crud подписок,\nпросмотр истории платежей
+AdminPanel -right-> Backend
+Backend -down-> Celery : Добавление задачи\nна изменение прав
+Celery -down-> AuthService : Добавление / удаление роли
+AuthService -up-> Client : Токен с правами
 
-Admin -left-> AdminPanel
-AdminPanel -down-> Backend: сохранение \n данных о подписках
-Client -down-> Api : Покупка \n подписки
-WorkerScheduler -up-> Backend : Запрос информации\nоб активных подписках
-WorkerScheduler -> PaymentService : Автоматический платеж
-Backend -left-> Database
-Backend -left-> Queue
-Queue --> AuthService
-
-Api -down-> PaymentService : Оплата
-PaymentService -up-> Api : Уведомление \n о статусе платежа
-Api -left-> Backend : Запрос информации о подписках
 @enduml
