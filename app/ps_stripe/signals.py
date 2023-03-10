@@ -61,6 +61,7 @@ def disable_product(sender, instance: Subscription, **kwargs):
 
 @receiver(post_save, sender=Client)
 def create_customer(sender, instance: Client, created: bool, **kwargs):
+    """Создать клиента в stipe."""
     if created:
         stripe_customer = stripe.Customer.create(
             metadata={"user_id": instance.pk}
@@ -73,5 +74,6 @@ def create_customer(sender, instance: Client, created: bool, **kwargs):
 
 @receiver(pre_delete, sender=Client)
 def delete_customer(sender, instance: Client, **kwargs):
+    """Удалить клиента из stripe."""
     customer = Customer.objects.get(client=instance)
     customer = stripe.Customer.delete(customer.pk)
