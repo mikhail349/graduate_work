@@ -51,7 +51,10 @@ def create_update_product(
 @receiver(pre_delete, sender=Subscription)
 def disable_product(sender, instance: Subscription, **kwargs):
     """Отключить продукт в stripe."""
-    product = Product.objects.get(subscription=instance)
+    try:
+        product = Product.objects.get(subscription=instance)
+    except Product.DoesNotExist:
+        return
 
     stripe.Product.modify(
         product.pk,
@@ -61,6 +64,7 @@ def disable_product(sender, instance: Subscription, **kwargs):
 
 @receiver(post_save, sender=Client)
 def create_customer(sender, instance: Client, created: bool, **kwargs):
+    """Создать клиента в stipe."""
     if created:
         stripe_customer = stripe.Customer.create(
             metadata={"user_id": instance.pk}
@@ -73,5 +77,10 @@ def create_customer(sender, instance: Client, created: bool, **kwargs):
 
 @receiver(pre_delete, sender=Client)
 def delete_customer(sender, instance: Client, **kwargs):
-    customer = Customer.objects.get(client=instance)
-    customer = stripe.Customer.delete(customer.pk)
+    """Удалить клиента из stripe."""
+    try:
+        customer = Customer.objects.get(client=instance)
+    except Customer.DoesNotExist:
+        return
+
+    stripe.Customer.delete(customer.pk)
