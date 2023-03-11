@@ -22,6 +22,7 @@ services:
     restart: always
     depends_on:
       - pg
+      - rabbitmq
     networks:
       - my_network
   nginx:
