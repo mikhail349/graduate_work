@@ -5,6 +5,7 @@ import stripe
 from django.db import transaction
 from django.conf import settings
 from django.http import HttpRequest
+from django.utils.timezone import make_aware
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -23,7 +24,7 @@ def create_subscription(data):
     auto_renewal = True
     int_payment_amount = data['plan']['amount']
     currency = data['plan']['currency']
-    payment_dt = datetime.fromtimestamp(data['plan']['created'])
+    payment_dt = make_aware(datetime.fromtimestamp(data['created']))
 
     with transaction.atomic():
         ClientSubscription.objects.create(
@@ -83,6 +84,7 @@ class StripeAPI(APIView):
                 data={'msg': msg.INVALID_SIGNATURE},
                 status=HTTPStatus.UNAUTHORIZED,
             )
+        print(event)
 
         method = EVENTS.get(event['type'])
         if method:
