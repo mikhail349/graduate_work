@@ -4,13 +4,12 @@ from celery import shared_task
 from requests.exceptions import ConnectionError
 
 from services.auth.auth_api_client import auth_client
-from django.conf import settings
 
 
 @shared_task(
     autoretry_for=(ConnectionError,),
     retry_backoff=True,
-    max_retries=settings.CELERY_MAX_RETRIES,
+    max_retries=None
 )
 def add_role(user_id: uuid.UUID, role: str) -> int:
     """Отправить запрос на добавление роли в auth сервис.
@@ -29,7 +28,7 @@ def add_role(user_id: uuid.UUID, role: str) -> int:
 @shared_task(
     autoretry_for=(ConnectionError,),
     retry_backoff=True,
-    max_retries=settings.CELERY_MAX_RETRIES,
+    max_retries=None
 )
 def delete_role(user_id: uuid.UUID, role: str) -> int:
     """Отправить запрос на удаление роли в auth сервис.
