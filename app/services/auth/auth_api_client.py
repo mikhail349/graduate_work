@@ -1,7 +1,10 @@
 import uuid
+from http import HTTPStatus
 
 import requests
 from django.conf import settings
+
+from services.auth.exceptions import UnauthorizedError
 
 
 class AuthClient:
@@ -12,19 +15,28 @@ class AuthClient:
         self.login = settings.AUTH_USERNAME
         self.password = settings.AUTH_PASSWORD
         self.login_endpoint = self.url + settings.AUTH_LOGIN_ENDPOINT
+        self.logout_endpoint = self.url + settings.AUTH_LOGOUT_ENDPOINT
         self.user_roles_endpoint = (
             self.url + settings.AUTH_USER_ROLE_ENDPOINT
         )
 
     def get_token(self):
+        return self.login_user(self.login, self.password)
+
+    def login_user(self, username, password):
         data = {
-            "password": self.password,
-            "username": self.login,
+            "password": password,
+            "username": username,
         }
         res = requests.post(self.login_endpoint, json=data)
-
+        if res.status_code == HTTPStatus.UNAUTHORIZED:
+            raise UnauthorizedError()
         access_token = res.json()["access_token"]
         return access_token
+
+    def logout_user(self, token):
+        headers = {"Authorization": "Bearer {}".format(token)}
+        return requests.post(self.logout_endpoint, headers=headers)
 
     def add_user_role(
         self, user_id: uuid.UUID, role_name: str

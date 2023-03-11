@@ -11,6 +11,7 @@ urlapipatterns = [
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/', include(urlapipatterns)),
+    path('ui/', include('ui.urls')),
 ]
 
 admin.site.site_header = _('Billing service administration')

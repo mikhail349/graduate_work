@@ -9,4 +9,5 @@ INSTALLED_APPS = [
     'subscriptions.apps.SubscriptionsConfig',
     'ps_stripe.apps.PsStripeConfig',
     'clients.apps.ClientsConfig',
+    'ui.apps.UiConfig',
 ]
