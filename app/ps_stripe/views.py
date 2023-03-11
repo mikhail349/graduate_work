@@ -43,7 +43,7 @@ def create_subscription(data):
             payment_dt=payment_dt,
         )
 
-    add_role(client.pk, subscription.role_name)
+    add_role.delay(client.pk, subscription.role_name)
 
 
 def delete_subscription(data):
@@ -51,7 +51,7 @@ def delete_subscription(data):
         payment_system_subscription_id=data['id']
     )
     client_subscription.delete()
-    delete_role(
+    delete_role.delay(
         client_subscription.client.pk,
         client_subscription.subscription.role_name,
     )
