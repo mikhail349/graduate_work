@@ -10,6 +10,8 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     restart: always
+    networks:
+      - my_network
   app:
     build: ./app
     env_file:
@@ -20,6 +22,8 @@ services:
     restart: always
     depends_on:
       - pg
+    networks:
+      - my_network
   nginx:
     image: nginx:1.19.2-alpine
     volumes:
@@ -30,6 +34,8 @@ services:
       - app
     ports:
       - 80:80
+    networks:
+      - my_network
   rabbitmq:
     image: rabbitmq:3-alpine
     restart: always
@@ -38,7 +44,13 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
     volumes:
         - rabbitmq_data:/var/lib/rabbitmq/mnesia/
+    networks:
+      - my_network
 volumes:
   pgdata:
   appstatic:
   rabbitmq_data:
+
+networks:
+  my_network:
+    external: true
