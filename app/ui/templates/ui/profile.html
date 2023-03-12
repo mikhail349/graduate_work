@@ -1,39 +1,66 @@
 {% extends 'ui/main.html' %}
+{% load tags %}
 
 {% block content %}
     <div class="container-lg">
-        <h4 class="mb-3">Подписки</h4>
-        <div class="row">
-            {% for subscription in subscriptions %}
-                <div class="col-4">
-                    <div class="card box-shadow rounded-3">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ subscription.name }}</h5>
-                            <p class="card-text">{{ subscription.description }}</p>
+        {% if user_subscriptions %}
+            <h4 class="mb-3">Мои подписки</h4>
+            <div class="row mb-3">
+                {% for user_subscription in user_subscriptions %}
+                    <div class="col-4">
+                        <div class="card shadow border-0 rounded-3">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ user_subscription.subscription.name }}</h5>
+                                <p class="card-text">{{ user_subscription.subscription.description }}</p>
+                            </div>
+                            <ul class="list-group list-group-flush border-top">
+                                <li class="list-group-item">
+                                    {% if user_subscription.auto_renewal %}
+                                        Следующее списание
+                                    {% else %}
+                                        Закончится
+                                    {% endif %}
+                                    {{ user_subscription.end_date|str_to_date|date:'d.m.Y' }}
+                                </li>
+                            </ul>
                         </div>
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item">
-                                {{ subscription.price|floatformat:2 }} {{ subscription.currency }} / {{ subscription.duration }}
-                            </li>
-                            {% if not subscription.paid %}
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="mb-3">
+                <a href="{% url 'ui:portal' %}" class="link-primary">Управление подписками</a>
+            </div>
+        {% endif %}
+
+        <h4 class="mb-3">Доступные подписки</h4>
+        {% if subscriptions %}
+            <div class="row mb-3">
+                {% for subscription in subscriptions %}
+                    <div class="col-4">
+                        <div class="card shadow border-0 rounded-3">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ subscription.name }}</h5>
+                                <p class="card-text">{{ subscription.description }}</p>
+                            </div>
+                            <ul class="list-group list-group-flush border-top">
+                                <li class="list-group-item">
+                                    {{ subscription.price|floatformat:2 }} {{ subscription.currency }} / {{ subscription.duration }}
+                                </li>
                                 <li class="list-group-item">
                                     <a
                                         class="btn btn-primary"
                                         href="{% url 'ui:create_checkout_session' subscription_id=subscription.id %}"
-                                        role="button"
-                                    >Купить</a>
-                                </li>
-                            {% else %}
-                                <li class="list-group-item">
-                                    <a class="btn btn-danger" href="#" role="button">
-                                        Отменить подписку
+                                        role="button">Купить
                                     </a>
                                 </li>
-                            {% endif %}
-                        </ul>
+                            </ul>
+                        </div>
                     </div>
-                </div>
-            {% endfor %}
-        </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="fw-light">Нет доступных подписок</p>
+        {% endif %}
+
     </div>
 {% endblock  %}

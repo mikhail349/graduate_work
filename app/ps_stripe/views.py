@@ -21,7 +21,7 @@ def create_subscription(data):
     product = Product.objects.get(pk=data['plan']['product'])
     start_date = datetime.fromtimestamp(data['current_period_start'])
     end_date = datetime.fromtimestamp(data['current_period_end'])
-    auto_renewal = True
+    auto_renewal = data['cancel_at_period_end']
 
     ClientSubscription.objects.create(
         client=customer.client,
@@ -37,9 +37,11 @@ def create_subscription(data):
 
 def update_subscription(data):
     """Обновить подписку."""
+    print(data)
     stripe_subscription_id = data['id']
     start_date = datetime.fromtimestamp(data['current_period_start'])
     end_date = datetime.fromtimestamp(data['current_period_end'])
+    auto_renewal = not data['cancel_at_period_end']
 
     try:
         client_subscription = ClientSubscription.objects.get(
@@ -50,6 +52,7 @@ def update_subscription(data):
 
     client_subscription.start_date = start_date
     client_subscription.end_date = end_date
+    client_subscription.auto_renewal = auto_renewal
     client_subscription.save()
 
 

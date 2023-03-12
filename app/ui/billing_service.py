@@ -37,6 +37,20 @@ class BillingService:
         response = requests.get(self.subscriptions_url, headers=headers)
         return response.json()
 
+    def get_user_subscriptions(self, token: str) -> list:
+        """Получить список подписок пользователя.
+
+        Args:
+            token: access-токен
+
+        Returns:
+            list: список активных подписок
+
+        """
+        headers = {'Authorization': 'Bearer {}'.format(token)}
+        response = requests.get(self.subscriptions_url + 'my/', headers=headers)
+        return response.json()
+
 
 billing_service = BillingService(
     subscriptions_url=f'{settings.BILLING_BASE_URL}{settings.BILLING_SUBSCRIPTIONS_ENDPOINT}',

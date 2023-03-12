@@ -57,10 +57,21 @@ def logout(request, user: dict):
 @token_required
 def profile(request, user: dict):
     subscriptions = billing_service.get_subscriptions(user['token'])
+    user_subscriptions = billing_service.get_user_subscriptions(user['token'])
     context = {
         'subscriptions': subscriptions,
+        'user_subscriptions': user_subscriptions,
     }
     return render(request, 'ui/profile.html', context=context)
+
+@token_required
+def portal(request, user: dict):
+    customer = Customer.objects.get(client__pk=user['id'])
+    session = stripe.billing_portal.Session.create(
+        customer=customer.pk,
+        return_url=request.build_absolute_uri(reverse('ui:profile')),
+    )
+    return redirect(session.url)
 
 
 @token_required

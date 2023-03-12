@@ -4,6 +4,8 @@ from http import HTTPStatus
 import jwt
 from django.http import HttpResponse
 from django.conf import settings
+from django.shortcuts import render, redirect
+from django.urls import reverse
 
 from ui import messages as msg
 
@@ -20,8 +22,8 @@ def token_required(function):
                 algorithms=[settings.JWT_AUTH["JWT_ALGORITHM"]]
             )
         except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
-            return HttpResponse(msg.UNAUTHORIZED, status=HTTPStatus.UNAUTHORIZED)
-        
+            return redirect(reverse('ui:login'))
+
         data = {
             'id': payload['user_id'],
             'token': token,
