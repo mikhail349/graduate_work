@@ -2,9 +2,9 @@ from datetime import datetime
 from http import HTTPStatus
 
 import stripe
-from django.db import transaction
 from django.conf import settings
 from django.http import HttpRequest
+from django.utils.timezone import make_aware
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -15,41 +15,53 @@ from subscriptions.tasks import add_role, delete_role
 
 
 def create_subscription(data):
+    """Создать подписку."""
     stripe_subscription_id = data['id']
-    client = Customer.objects.get(pk=data['customer']).client
-    subscription = Product.objects.get(pk=data['plan']['product']).subscription
+    customer = Customer.objects.get(pk=data['customer'])
+    product = Product.objects.get(pk=data['plan']['product'])
     start_date = datetime.fromtimestamp(data['current_period_start'])
     end_date = datetime.fromtimestamp(data['current_period_end'])
     auto_renewal = True
-    int_payment_amount = data['plan']['amount']
-    currency = data['plan']['currency']
-    payment_dt = datetime.fromtimestamp(data['plan']['created'])
 
-    with transaction.atomic():
-        ClientSubscription.objects.create(
-            client=client,
-            subscription=subscription,
-            start_date=start_date,
-            end_date=end_date,
-            auto_renewal=auto_renewal,
-            payment_system_subscription_id=stripe_subscription_id,
+    ClientSubscription.objects.create(
+        client=customer.client,
+        subscription=product.subscription,
+        start_date=start_date,
+        end_date=end_date,
+        auto_renewal=auto_renewal,
+        payment_system_subscription_id=stripe_subscription_id,
+    )
+
+    add_role.delay(customer.client.pk, product.subscription.role_name)
+
+
+def update_subscription(data):
+    """Обновить подписку."""
+    stripe_subscription_id = data['id']
+    start_date = datetime.fromtimestamp(data['current_period_start'])
+    end_date = datetime.fromtimestamp(data['current_period_end'])
+
+    try:
+        client_subscription = ClientSubscription.objects.get(
+            payment_system_subscription_id=stripe_subscription_id
         )
+    except ClientSubscription.DoesNotExist:
+        return
 
-        PaymentHistory.objects.create(
-            client=client,
-            subscription_name=subscription.name,
-            int_payment_amount=int_payment_amount,
-            currency=currency,
-            payment_dt=payment_dt,
-        )
-
-    add_role.delay(client.pk, subscription.role_name)
+    client_subscription.start_date = start_date
+    client_subscription.end_date = end_date
+    client_subscription.save()
 
 
 def delete_subscription(data):
-    client_subscription = ClientSubscription.objects.get(
-        payment_system_subscription_id=data['id']
-    )
+    """Удалить подписку."""
+    try:
+        client_subscription = ClientSubscription.objects.get(
+            payment_system_subscription_id=data['id']
+        )
+    except ClientSubscription.DoesNotExist:
+        return
+
     client_subscription.delete()
     delete_role.delay(
         client_subscription.client.pk,
@@ -57,9 +69,32 @@ def delete_subscription(data):
     )
 
 
+def invoice_paid(data):
+    """Добавить платеж в историю."""
+    customer = Customer.objects.get(pk=data['customer'])
+    product = Product.objects.get(
+        pk=data['lines']['data'][0]['price']['product']
+    )
+    int_payment_amount = data['amount_paid']
+    currency = data['currency']
+    payment_dt = make_aware(
+        datetime.fromtimestamp(data['status_transitions']['paid_at'])
+    )
+
+    PaymentHistory.objects.create(
+        client=customer.client,
+        subscription_name=product.subscription.name,
+        int_payment_amount=int_payment_amount,
+        currency=currency,
+        payment_dt=payment_dt,
+    )
+
+
 EVENTS = {
     'customer.subscription.created': create_subscription,
+    'customer.subscription.updated': update_subscription,
     'customer.subscription.deleted': delete_subscription,
+    'invoice.paid': invoice_paid
 }
 
 
