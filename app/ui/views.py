@@ -32,6 +32,7 @@ def login(request):
         data = request.POST
         username = data['username']
         password = data['password']
+        next = data['next']
         try:
             token = auth_service.login(username, password)
         except UnauthorizedError:
@@ -39,7 +40,7 @@ def login(request):
         except ConnectionError:
             return render_login_error(request, msg.AUTH_SERVICE_OFFLINE)
 
-        response = redirect(reverse('ui:index'))
+        response = redirect(reverse('ui:index') if next == '' else next)
         response.set_cookie(settings.BILLING_AUTH_TOKEN_COOKIE_NAME, token)
         return response
 

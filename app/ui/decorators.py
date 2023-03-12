@@ -4,6 +4,7 @@ import jwt
 from django.conf import settings
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.utils.http import urlencode
 
 
 def get_user(request):
@@ -24,6 +25,10 @@ def get_user(request):
     }
 
 
+def redirect_to_login(request):
+    return redirect(reverse('ui:login') + '?' + urlencode({'next': request.get_full_path()}))
+
+
 def token_required(function):
     """Декоратор аутентификации пользователя из сервиса Auth через cookies."""
     @functools.wraps(function)
@@ -31,7 +36,7 @@ def token_required(function):
         try:
             user = get_user(request)
         except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
-            return redirect(reverse('ui:login'))
+            return redirect_to_login(request)
         return function(request, user=user, *args, **kwargs)
     return wrap
 
@@ -44,7 +49,7 @@ def token_permission_required(permission_name: str):
             try:
                 user = get_user(request)
             except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
-                return redirect(reverse('ui:login'))
+                return redirect_to_login(request)
 
             if not user['is_superuser']:
                 if permission_name not in user['permissions']:
