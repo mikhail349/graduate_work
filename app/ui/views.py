@@ -34,15 +34,24 @@ def login(request):
         password = data['password']
         next = data['next']
         try:
-            access_token, refresh_token = auth_service.login(username, password)
+            access_token, refresh_token = auth_service.login(
+                username,
+                password,
+            )
         except UnauthorizedError:
             return render_login_error(request, msg.INVALID_CREDENTIALS)
         except ConnectionError:
             return render_login_error(request, msg.AUTH_SERVICE_OFFLINE)
 
         response = redirect(reverse('ui:index') if next == '' else next)
-        response.set_cookie(settings.BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME, access_token)
-        response.set_cookie(settings.BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME, refresh_token)
+        response.set_cookie(
+            settings.BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME,
+            access_token,
+        )
+        response.set_cookie(
+            settings.BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME,
+            refresh_token,
+        )
         return response
 
 
@@ -60,7 +69,9 @@ def logout(request, user: dict):
 @token_required
 def profile(request, user: dict):
     subscriptions = billing_service.get_subscriptions(user['access_token'])
-    user_subscriptions = billing_service.get_user_subscriptions(user['access_token'])
+    user_subscriptions = billing_service.get_user_subscriptions(
+        user['access_token']
+    )
     context = {
         'subscriptions': subscriptions,
         'user_subscriptions': user_subscriptions,

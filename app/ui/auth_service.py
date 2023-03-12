@@ -59,7 +59,7 @@ class AuthService:
 
         """
         headers = {'Authorization': 'Bearer {}'.format(token)}
-        res = requests.post(self.refresh_url, headers=headers)        
+        res = requests.post(self.refresh_url, headers=headers)
         return res.json()["access_token"], res.json()["refresh_token"]
 
 

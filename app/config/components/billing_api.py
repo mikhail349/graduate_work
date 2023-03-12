@@ -9,8 +9,14 @@ BILLING_USER_SUBSCRIPTIONS_ENDPOINT = (
 )
 BILLING_CLIENTS_ENDPOINT = os.environ.get('BILLING_CLIENTS_ENDPOINT')
 BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME = (
-    os.environ.get('BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME', 'auth_access_token')
+    os.environ.get(
+        'BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME',
+        'auth_access_token'
+    )
 )
 BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME = (
-    os.environ.get('BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME', 'auth_refresh_token')
+    os.environ.get(
+        'BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME',
+        'auth_refresh_token'
+    )
 )
