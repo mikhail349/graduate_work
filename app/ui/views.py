@@ -34,31 +34,33 @@ def login(request):
         password = data['password']
         next = data['next']
         try:
-            token = auth_service.login(username, password)
+            access_token, refresh_token = auth_service.login(username, password)
         except UnauthorizedError:
             return render_login_error(request, msg.INVALID_CREDENTIALS)
         except ConnectionError:
             return render_login_error(request, msg.AUTH_SERVICE_OFFLINE)
 
         response = redirect(reverse('ui:index') if next == '' else next)
-        response.set_cookie(settings.BILLING_AUTH_TOKEN_COOKIE_NAME, token)
+        response.set_cookie(settings.BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME, access_token)
+        response.set_cookie(settings.BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME, refresh_token)
         return response
 
 
 @token_required
 def logout(request, user: dict):
     if request.method == 'POST':
-        auth_service.logout(user['token'])
+        auth_service.logout(user['access_token'])
 
         response = redirect(reverse('ui:index'))
-        response.delete_cookie(settings.BILLING_AUTH_TOKEN_COOKIE_NAME)
+        response.delete_cookie(settings.BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME)
+        response.delete_cookie(settings.BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME)
         return response
 
 
 @token_required
 def profile(request, user: dict):
-    subscriptions = billing_service.get_subscriptions(user['token'])
-    user_subscriptions = billing_service.get_user_subscriptions(user['token'])
+    subscriptions = billing_service.get_subscriptions(user['access_token'])
+    user_subscriptions = billing_service.get_user_subscriptions(user['access_token'])
     context = {
         'subscriptions': subscriptions,
         'user_subscriptions': user_subscriptions,
@@ -78,7 +80,7 @@ def portal(request, user: dict):
 
 @token_required
 def create_checkout_session(request, user: dict, subscription_id):
-    billing_service.create_client(user['token'])
+    billing_service.create_client(user['access_token'])
     product = Product.objects.get(subscription__id=subscription_id)
     customer = Customer.objects.get(client__pk=user['id'])
     stripe_product = stripe.Product.retrieve(product.pk)

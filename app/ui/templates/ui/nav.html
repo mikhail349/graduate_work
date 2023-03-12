@@ -11,7 +11,7 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-          {% if request.COOKIES.auth_token %} <!-- Очень insecurely. Сделано только для демо. -->
+          {% if request.COOKIES.auth_access_token %} <!-- Очень insecurely. Сделано только для демо. -->
             <li class="nav-item">
               <a class="nav-link active" aria-current="page" href="{% url 'ui:profile' %}">Профиль</a>
             </li>
