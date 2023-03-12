@@ -1,0 +1,39 @@
+{% extends 'ui/main.html' %}
+
+{% block content %}
+    <div class="container-lg">
+        <h4 class="mb-3">Подписки</h4>
+        <div class="row">
+            {% for subscription in subscriptions %}
+                <div class="col-4">
+                    <div class="card box-shadow rounded-3">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ subscription.name }}</h5>
+                            <p class="card-text">{{ subscription.description }}</p>
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">
+                                {{ subscription.price|floatformat:2 }} {{ subscription.currency }} / {{ subscription.duration }}
+                            </li>
+                            {% if not subscription.paid %}
+                                <li class="list-group-item">
+                                    <a
+                                        class="btn btn-primary"
+                                        href="{% url 'ui:create_checkout_session' subscription_id=subscription.id %}"
+                                        role="button"
+                                    >Купить</a>
+                                </li>
+                            {% else %}
+                                <li class="list-group-item">
+                                    <a class="btn btn-danger" href="#" role="button">
+                                        Отменить подписку
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock  %}

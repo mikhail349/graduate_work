@@ -31,7 +31,7 @@ class PaymentHistoryAdmin(admin.ModelAdmin):
         return False
 
     def has_delete_permission(self, request, obj=None):
-        return False
+        return True
 
 
 admin.site.register(Subscription, SubscriptionAdmin)

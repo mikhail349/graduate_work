@@ -6,16 +6,21 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-        <li class="nav-item">
-            {% if request.COOKIES.auth_token %} <!-- Очень insecurely. Сделано только для демо. -->
-                <form action="{% url 'ui:logout' %}" method="post">
-                    {% csrf_token %}
-                    <button class="btn btn-link nav-link" type="submit">Выйти</button>
-                </form>
-            {% else %}
-                <a class="nav-link active" aria-current="page" href="{% url 'ui:login' %}">Войти</a>
-            {% endif %}
-        </li>
+          {% if request.COOKIES.auth_token %} <!-- Очень insecurely. Сделано только для демо. -->
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="{% url 'ui:profile' %}">Профиль</a>
+            </li>
+            <li class="nav-item">
+              <form action="{% url 'ui:logout' %}" method="post">
+                  {% csrf_token %}
+                  <button class="btn btn-link nav-link" type="submit">Выйти</button>
+              </form>
+            </li>
+          {% else %}
+            <li class="nav-item">
+              <a class="nav-link active" aria-current="page" href="{% url 'ui:login' %}">Войти</a>
+            </li>
+          {% endif %}
       </ul>
     </div>
   </div>
