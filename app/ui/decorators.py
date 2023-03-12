@@ -36,11 +36,24 @@ def token_required(function):
     """Декоратор аутентификации пользователя из сервиса Auth через cookies."""
     @functools.wraps(function)
     def wrap(request, *args, **kwargs):
+        new_access_token = None
+        new_refresh_token = None
         try:
             user = get_user(request.COOKIES.get(settings.BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME))
-        except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
+        except jwt.ExpiredSignatureError:
+            new_access_token, new_refresh_token = auth_service.refresh(
+                request.COOKIES.get(settings.BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME)
+            )
+            user = get_user(new_access_token)
+        except jwt.InvalidTokenError:
             return redirect_to_login(request)
-        return function(request, user=user, *args, **kwargs)
+
+        response = function(request, user=user, *args, **kwargs)
+        if new_access_token:
+            response.set_cookie(settings.BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME, new_access_token)
+        if new_refresh_token:
+            response.set_cookie(settings.BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME, new_refresh_token)
+        return response
     return wrap
 
 
@@ -49,23 +62,24 @@ def token_permission_required(permission_name: str):
     def inner(function):
         @functools.wraps(function)
         def wrap(request, *args, **kwargs):
-            try:
-                user = get_user(request.COOKIES.get(settings.BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME))
-            except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
-                return redirect_to_login(request)
-
             new_access_token = None
             new_refresh_token = None
+            try:
+                user = get_user(request.COOKIES.get(settings.BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME))
+            except jwt.ExpiredSignatureError:
+                new_access_token, new_refresh_token = auth_service.refresh(
+                    request.COOKIES.get(settings.BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME)
+                )
+                user = get_user(new_access_token)
+            except jwt.InvalidTokenError:
+                return redirect_to_login(request)
+
             if not user['is_superuser']:
                 if permission_name not in user['permissions']:
                     new_access_token, new_refresh_token = auth_service.refresh(
                         request.COOKIES.get(settings.BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME)
                     )
-
-                    try:
-                        user = get_user(new_access_token)
-                    except (jwt.ExpiredSignatureError, jwt.InvalidTokenError):
-                        return redirect_to_login(request)
+                    user = get_user(new_access_token)
                     
                     if not user['is_superuser']:
                         if permission_name not in user['permissions']:
