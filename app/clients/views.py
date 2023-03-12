@@ -15,7 +15,10 @@ class ClientsAPI(APIView):
     @user_required
     def post(self, request: HttpRequest, user: dict):
         """Добавить клиента."""
-        _, created = Client.objects.get_or_create(id=user['id'], email=user['email'])
+        _, created = Client.objects.get_or_create(
+            id=user['id'],
+            email=user['email']
+        )
         if not created:
             return Response(
                 data={'msg': msg.CLIENT_EXISTS},

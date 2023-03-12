@@ -76,7 +76,11 @@ class ClientSubscription(models.Model):
     """
 
     client = models.ForeignKey(Client, on_delete=models.PROTECT)
-    subscription = models.ForeignKey(Subscription, on_delete=models.PROTECT, related_name='clientsubscription')
+    subscription = models.ForeignKey(
+        Subscription,
+        on_delete=models.PROTECT,
+        related_name='clientsubscription'
+    )
     start_date = models.DateField()
     end_date = models.DateField()
     auto_renewal = models.BooleanField(default=True)

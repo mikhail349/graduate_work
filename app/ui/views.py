@@ -8,7 +8,7 @@ from requests.exceptions import ConnectionError
 from ui import messages as msg
 from ui.auth_service import auth_service
 from ui.billing_service import billing_service
-from ui.decorators import token_required
+from ui.decorators import token_required, token_permission_required
 from ui.exceptions import UnauthorizedError
 from ps_stripe.models import Customer, Product
 
@@ -17,7 +17,7 @@ def render_login_error(request, error_msg: str) -> HttpResponse:
     context = {
         'errors': error_msg
     }
-    return render(request, 'ui/login.html', context=context) 
+    return render(request, 'ui/login.html', context=context)
 
 
 def index(request):
@@ -37,7 +37,7 @@ def login(request):
         except UnauthorizedError:
             return render_login_error(request, msg.INVALID_CREDENTIALS)
         except ConnectionError:
-            return render_login_error(request, msg.AUTH_SERVICE_OFFLINE)           
+            return render_login_error(request, msg.AUTH_SERVICE_OFFLINE)
 
         response = redirect(reverse('ui:index'))
         response.set_cookie(settings.BILLING_AUTH_TOKEN_COOKIE_NAME, token)
@@ -63,6 +63,7 @@ def profile(request, user: dict):
         'user_subscriptions': user_subscriptions,
     }
     return render(request, 'ui/profile.html', context=context)
+
 
 @token_required
 def portal(request, user: dict):
@@ -91,3 +92,8 @@ def create_checkout_session(request, user: dict, subscription_id):
         }],
     )
     return redirect(checkout_session.url)
+
+
+@token_permission_required('view_hd_movies')
+def hd_movies(request, user):
+    return render(request, 'ui/hd_movies.html')

@@ -1,18 +1,20 @@
-from http import HTTPStatus
-
 import requests
 from django.conf import settings
-
-from ui.exceptions import UnauthorizedError
 
 
 class BillingService:
     """Класс для взаимодействия с Billing Service."""
 
-    def __init__(self, subscriptions_url: str, clients_url: str):
+    def __init__(
+        self,
+        subscriptions_url: str,
+        clients_url: str,
+        user_subscriptions_url: str
+    ):
         self.subscriptions_url = subscriptions_url
         self.clients_url = clients_url
-    
+        self.user_subscriptions_url = user_subscriptions_url
+
     def create_client(self, token: str):
         """Создать клиента.
 
@@ -48,11 +50,16 @@ class BillingService:
 
         """
         headers = {'Authorization': 'Bearer {}'.format(token)}
-        response = requests.get(self.subscriptions_url + 'my/', headers=headers)
+        response = requests.get(self.user_subscriptions_url, headers=headers)
         return response.json()
 
 
+base_url = settings.BILLING_BASE_URL
+
 billing_service = BillingService(
-    subscriptions_url=f'{settings.BILLING_BASE_URL}{settings.BILLING_SUBSCRIPTIONS_ENDPOINT}',
-    clients_url=f'{settings.BILLING_BASE_URL}{settings.BILLING_CLIENTS_ENDPOINT}'
+    subscriptions_url=f'{base_url}{settings.BILLING_SUBSCRIPTIONS_ENDPOINT}',
+    clients_url=f'{base_url}{settings.BILLING_CLIENTS_ENDPOINT}',
+    user_subscriptions_url=(
+        f'{base_url}{settings.BILLING_USER_SUBSCRIPTIONS_ENDPOINT}'
+    ),
 )

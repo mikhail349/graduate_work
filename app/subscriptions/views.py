@@ -5,7 +5,10 @@ from rest_framework.views import APIView
 
 from auth.decorators import user_required
 from subscriptions.models import Subscription, ClientSubscription
-from subscriptions.serializers import ClientSubscriptionSerializer, SubscriptionSerializer
+from subscriptions.serializers import (
+    ClientSubscriptionSerializer,
+    SubscriptionSerializer
+)
 
 
 class SubscriptionsAPI(APIView):
@@ -17,7 +20,10 @@ class SubscriptionsAPI(APIView):
         subscriptions = (
             Subscription.objects.filter(
                 Q(is_active=True),
-                ~Exists(ClientSubscription.objects.filter(subscription__pk=OuterRef('pk'), client__pk=user['id']))
+                ~Exists(ClientSubscription.objects.filter(
+                    subscription__pk=OuterRef('pk'),
+                    client__pk=user['id']
+                ))
             )
         )
         serializer = SubscriptionSerializer(subscriptions, many=True)
@@ -30,11 +36,8 @@ class UserSubscriptionsAPI(APIView):
     @user_required
     def get(self, request: HttpRequest, user: dict):
         """Получить подписки пользователя."""
-        # subscriptions = (
-        #     Subscription.objects.filter(
-        #         Exists(ClientSubscription.objects.filter(subscription__pk=OuterRef('pk'), client__pk=user['id']))
-        #     )
-        # )
-        subscriptions = ClientSubscription.objects.filter(client__pk=user['id'])
+        subscriptions = ClientSubscription.objects.filter(
+            client__pk=user['id']
+        )
         serializer = ClientSubscriptionSerializer(subscriptions, many=True)
         return Response(serializer.data)

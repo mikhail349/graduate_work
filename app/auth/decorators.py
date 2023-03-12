@@ -49,7 +49,7 @@ def user_required(function):
 
         if 'user_id' not in payload or 'email' not in payload:
             return response_401(msg.INVALID_PAYLOAD)
-        
+
         user = {
             'id': payload['user_id'],
             'email': payload['email'],
