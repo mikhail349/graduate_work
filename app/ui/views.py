@@ -8,7 +8,7 @@ from requests.exceptions import ConnectionError
 from ui import messages as msg
 from ui.auth_service import auth_service
 from ui.billing_service import billing_service
-from ui.decorators import token_required, token_permission_required
+from ui.auth import token_required, token_permission_required, User
 from ui.exceptions import UnauthorizedError
 from ps_stripe.models import Customer, Product
 
@@ -56,9 +56,9 @@ def login(request):
 
 
 @token_required
-def logout(request, user: dict):
+def logout(request, user: User):
     if request.method == 'POST':
-        auth_service.logout(user['access_token'])
+        auth_service.logout(user.access_token)
 
         response = redirect(reverse('ui:index'))
         response.delete_cookie(settings.BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME)
@@ -67,10 +67,10 @@ def logout(request, user: dict):
 
 
 @token_required
-def profile(request, user: dict):
-    subscriptions = billing_service.get_subscriptions(user['access_token'])
+def profile(request, user: User):
+    subscriptions = billing_service.get_subscriptions(user.access_token)
     user_subscriptions = billing_service.get_user_subscriptions(
-        user['access_token']
+        user.access_token
     )
     context = {
         'subscriptions': subscriptions,
@@ -80,8 +80,8 @@ def profile(request, user: dict):
 
 
 @token_required
-def portal(request, user: dict):
-    customer = Customer.objects.get(client__pk=user['id'])
+def portal(request, user: User):
+    customer = Customer.objects.get(client__pk=user.id)
     session = stripe.billing_portal.Session.create(
         customer=customer.pk,
         return_url=request.build_absolute_uri(reverse('ui:profile')),
@@ -90,10 +90,10 @@ def portal(request, user: dict):
 
 
 @token_required
-def create_checkout_session(request, user: dict, subscription_id):
-    billing_service.create_client(user['access_token'])
+def create_checkout_session(request, user: User, subscription_id: int):
+    billing_service.create_client(user.access_token)
     product = Product.objects.get(subscription__id=subscription_id)
-    customer = Customer.objects.get(client__pk=user['id'])
+    customer = Customer.objects.get(client__pk=user.id)
     stripe_product = stripe.Product.retrieve(product.pk)
     checkout_session = stripe.checkout.Session.create(
         customer=customer.pk,

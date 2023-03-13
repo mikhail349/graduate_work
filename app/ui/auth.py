@@ -1,4 +1,6 @@
 import functools
+import uuid
+from dataclasses import dataclass
 
 import jwt
 from django.conf import settings
@@ -10,20 +12,39 @@ from ui.auth_service import auth_service
 from ui.exceptions import UnauthorizedError
 
 
-def get_user(access_token):
+@dataclass
+class User:
+    """Класс пользователя."""
+    id: uuid.UUID
+    email: str
+    permissions: list[str]
+    is_superuser: bool
+    access_token: str
+
+
+def get_user(access_token: str) -> User:
+    """Получить пользователя из access-токена.
+
+    Args:
+        access_token: access-токен
+
+    Returns:
+        User: пользователь
+
+    """
     payload = jwt.decode(
         access_token,
         settings.JWT_AUTH["JWT_PUBLIC_KEY"],
         algorithms=[settings.JWT_AUTH["JWT_ALGORITHM"]]
     )
 
-    return {
-        'id': payload['user_id'],
-        'email': payload['email'],
-        'permissions': payload['permissions'],
-        'is_superuser': payload['is_superuser'],
-        'access_token': access_token,
-    }
+    return User(
+        id=payload['user_id'],
+        email=payload['email'],
+        permissions=payload['permissions'],
+        is_superuser=payload['is_superuser'],
+        access_token=access_token,
+    )
 
 
 def redirect_to_login(request):
@@ -103,15 +124,15 @@ def token_permission_required(permission_name: str):
             except jwt.InvalidTokenError:
                 return redirect_to_login(request)
 
-            if not user['is_superuser']:
-                if permission_name not in user['permissions']:
+            if not user.is_superuser:
+                if permission_name not in user.permissions:
                     new_access_token, new_refresh_token = auth_service.refresh(
                         request.COOKIES.get(refresh_token_name) if not new_refresh_token else new_refresh_token
                     )
                     user = get_user(new_access_token)
 
-                    if not user['is_superuser']:
-                        if permission_name not in user['permissions']:
+                    if not user.is_superuser:
+                        if permission_name not in user.permissions:
                             response = render(request, 'ui/no_access.html')
                             response.set_cookie(
                                 access_token_name,
