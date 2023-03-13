@@ -96,7 +96,16 @@ def logout(request: HttpRequest, user: User) -> HttpResponse:
 
     """
     if request.method == 'POST':
-        auth_service.logout(user.access_token)
+        try:
+            auth_service.logout(user.access_token)
+        except ConnectionError:
+            return render(
+                request,
+                'ui/error.html',
+                context={
+                    'error': msg.AUTH_SERVICE_OFFLINE,
+                },
+            )
 
         response = redirect(reverse('ui:index'))
         response.delete_cookie(settings.BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME)

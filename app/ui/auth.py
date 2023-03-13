@@ -8,9 +8,11 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils.http import urlencode
+from requests.exceptions import ConnectionError
 
 from ui.auth_service import auth_service
 from ui.exceptions import UnauthorizedError
+from ui import messages as msg
 
 
 @dataclass
@@ -66,6 +68,21 @@ def redirect_to_login(request: HttpRequest) -> HttpResponse:
     return response
 
 
+def render_auth_offline(request: HttpRequest) -> HttpResponse:
+    """Вернуть страницу с ошибкой недостпности Auth сервиса.
+
+    Args:
+        request: http-запрос
+
+    Returns:
+        HttpResponse: http-ответ
+
+    """
+    context={
+        'error': msg.AUTH_SERVICE_OFFLINE,
+    }
+    return render(request, 'ui/error.html', context=context)
+
 def get_user_with_tokens(
     access_token: str,
     refresh_token: str
@@ -104,30 +121,33 @@ def token_required(function):
     """Декоратор аутентификации пользователя из сервиса Auth через cookies."""
     @functools.wraps(function)
     def wrap(request: HttpRequest, *args, **kwargs):
-        user, new_access_token, new_refresh_token = get_user_with_tokens(
-            access_token=request.COOKIES.get(
-                settings.BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME,
-            ),
-            refresh_token=request.COOKIES.get(
-                settings.BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME,
-            ),
-        )
-
-        if not user:
-            return redirect_to_login(request)
-
-        response: HttpResponse = function(request, user=user, *args, **kwargs)
-        if new_access_token:
-            response.set_cookie(
-                settings.BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME,
-                new_access_token,
+        try:
+            user, new_access_token, new_refresh_token = get_user_with_tokens(
+                access_token=request.COOKIES.get(
+                    settings.BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME,
+                ),
+                refresh_token=request.COOKIES.get(
+                    settings.BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME,
+                ),
             )
-        if new_refresh_token:
-            response.set_cookie(
-                settings.BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME,
-                new_refresh_token,
-            )
-        return response
+
+            if not user:
+                return redirect_to_login(request)
+
+            response: HttpResponse = function(request, user=user, *args, **kwargs)
+            if new_access_token:
+                response.set_cookie(
+                    settings.BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME,
+                    new_access_token,
+                )
+            if new_refresh_token:
+                response.set_cookie(
+                    settings.BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME,
+                    new_refresh_token,
+                )
+            return response
+        except ConnectionError:
+            return render_auth_offline(request)
     return wrap
 
 
@@ -143,54 +163,64 @@ def token_permission_required(permission_name: str):
                 settings.BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME
             )
 
-            user, new_access_token, new_refresh_token = get_user_with_tokens(
-                access_token=request.COOKIES.get(access_token_name),
-                refresh_token=request.COOKIES.get(refresh_token_name),
-            )
-
-            if not user:
-                return redirect_to_login(request)
-
-            if not user.is_superuser:
-                if permission_name not in user.permissions:
-                    new_access_token, new_refresh_token = auth_service.refresh(
-                        request.COOKIES.get(refresh_token_name)
-                        if not new_refresh_token else new_refresh_token
+            try:
+                user, new_access_token, new_refresh_token = (
+                    get_user_with_tokens(
+                        access_token=request.COOKIES.get(access_token_name),
+                        refresh_token=request.COOKIES.get(refresh_token_name),
                     )
-                    user = get_user(new_access_token)
-
-                    if not user.is_superuser:
-                        if permission_name not in user.permissions:
-                            res: HttpResponse = render(
-                                request,
-                                'ui/no_access.html'
-                            )
-                            res.set_cookie(
-                                access_token_name,
-                                new_access_token,
-                            )
-                            res.set_cookie(
-                                refresh_token_name,
-                                new_refresh_token,
-                            )
-                            return res
-
-            response: HttpResponse = function(
-                request,
-                user=user,
-                *args,
-                **kwargs,
-            )
-            if new_access_token:
-                response.set_cookie(
-                    access_token_name,
-                    new_access_token,
                 )
-            if new_refresh_token:
-                response.set_cookie(
-                    refresh_token_name,
-                    new_refresh_token,
+
+                if not user:
+                    return redirect_to_login(request)
+
+                if not user.is_superuser:
+                    if permission_name not in user.permissions:
+
+                        new_access_token, new_refresh_token = (
+                            auth_service.refresh(
+                                request.COOKIES.get(refresh_token_name)
+                                if not new_refresh_token
+                                else new_refresh_token
+                            )
+                        )
+
+                        user = get_user(new_access_token)
+
+                        if not user.is_superuser:
+                            if permission_name not in user.permissions:
+                                res: HttpResponse = render(
+                                    request,
+                                    'ui/no_access.html'
+                                )
+                                res.set_cookie(
+                                    access_token_name,
+                                    new_access_token,
+                                )
+                                res.set_cookie(
+                                    refresh_token_name,
+                                    new_refresh_token,
+                                )
+                                return res
+
+                response: HttpResponse = function(
+                    request,
+                    user=user,
+                    *args,
+                    **kwargs,
                 )
-            return response
+                if new_access_token:
+                    response.set_cookie(
+                        access_token_name,
+                        new_access_token,
+                    )
+                if new_refresh_token:
+                    response.set_cookie(
+                        refresh_token_name,
+                        new_refresh_token,
+                    )
+                return response
+            except ConnectionError:
+                return render_auth_offline(request)
         return wrap
     return inner
