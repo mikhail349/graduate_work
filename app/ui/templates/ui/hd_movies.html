@@ -2,6 +2,17 @@
 
 {% block content %}
     <div class="container-lg">
-        У вас есть доступ на просмотр фильмов в HD!
+        <h4 class="mb-3">Фильмы в HD</h4>
+        <div class="row mb-3">
+            {% for movie in movies %}
+                <div class="col-4">
+                    <div class="card shadow border-0 rounded-3">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ movie }}</h5>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
     </div>
 {% endblock  %}

@@ -6,10 +6,11 @@ from django.urls import reverse
 from requests.exceptions import ConnectionError
 
 from ui import messages as msg
-from ui.services.auth import auth_service
-from ui.services.billing import billing_service
 from ui.auth import token_required, token_permission_required, User
 from ui.exceptions import UnauthorizedError
+from ui.mock import get_hd_movies
+from ui.services.auth import auth_service
+from ui.services.billing import billing_service
 from ui.utils import render_error, render_login_error
 from ps_stripe.models import Customer, Product
 
@@ -194,4 +195,7 @@ def hd_movies(request: HttpRequest, user: User) -> HttpResponse:
     Returns:
         HttpResponse: страница с ограниченным доступом к фильмам в HD
     """
-    return render(request, 'ui/hd_movies.html')
+    context = {
+        'movies': get_hd_movies()
+    }
+    return render(request, 'ui/hd_movies.html', context=context)
