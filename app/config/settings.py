@@ -12,7 +12,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY')
 
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'nginx']
 
 ROOT_URLCONF = 'config.urls'
 
@@ -41,5 +41,6 @@ include(
     'components/payment_service.py',
     'components/celery.py',
     'components/auth_api.py',
+    'components/billing_api.py',
     'components/logger.py',
 )

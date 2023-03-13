@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from subscriptions.models import Subscription
+from subscriptions.models import ClientSubscription, Subscription
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
@@ -8,4 +8,12 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Subscription
-        fields = ['id', 'name', 'description', 'price']
+        fields = ['id', 'name', 'description', 'price', 'duration', 'currency']
+
+
+class ClientSubscriptionSerializer(serializers.ModelSerializer):
+    subscription = SubscriptionSerializer()
+
+    class Meta:
+        model = ClientSubscription
+        fields = ['id', 'auto_renewal', 'end_date', 'subscription']

@@ -67,6 +67,7 @@ def create_customer(sender, instance: Client, created: bool, **kwargs):
     """Создать клиента в stipe."""
     if created:
         stripe_customer = stripe.Customer.create(
+            email=instance.email,
             metadata={"user_id": instance.pk}
         )
         Customer.objects.create(

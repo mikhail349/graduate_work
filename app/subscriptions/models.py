@@ -76,7 +76,11 @@ class ClientSubscription(models.Model):
     """
 
     client = models.ForeignKey(Client, on_delete=models.PROTECT)
-    subscription = models.ForeignKey(Subscription, on_delete=models.PROTECT)
+    subscription = models.ForeignKey(
+        Subscription,
+        on_delete=models.PROTECT,
+        related_name='clientsubscription'
+    )
     start_date = models.DateField()
     end_date = models.DateField()
     auto_renewal = models.BooleanField(default=True)
@@ -111,7 +115,7 @@ class PaymentHistory(models.Model):
 
     """
 
-    client = models.ForeignKey(Client, on_delete=models.PROTECT)
+    client = models.ForeignKey(Client, on_delete=models.CASCADE)
     subscription_name = models.CharField(max_length=255)
     int_payment_amount = models.IntegerField(help_text=_('Storing in cents'))
     currency = CurrencyField()

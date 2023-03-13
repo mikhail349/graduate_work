@@ -1,0 +1,33 @@
+{% extends 'ui/main.html' %}
+
+{% block content %}
+    <div class="container-lg" style="max-width:400px">
+        <div class="card shadow border-0 rounded-3 p-3">
+            <form action="{% url 'ui:login' %}?next={{ request.GET.next|urlencode }}" method="post">
+                {% csrf_token %}
+
+                <h1 class="h3 mb-3 font-weight-normal text-center">Авторизация</h1>  
+                
+                {% if errors %}
+                    <div class="alert alert-danger">{{ errors }}</div>
+                {% endif %}
+                
+                <div class="form-floating mb-3">            
+                    <input id="username" type="username" name="username" autocomplete="username email" placeholder="Имя пользователя" required class="form-control" >
+                    <label for="email">Имя пользователя</label>
+                    <div class="invalid-tooltip">Введите имя пользователя</div>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input id="password" type="password" name="password" autocomplete="current-password" placeholder="Пароль" required class="form-control" {% if errors %} autofocus {% endif %}>
+                    <label for="password">Пароль</label>
+                    <div class="invalid-tooltip">Введите пароль</div>
+                </div>
+
+                <input type="hidden" name="next" value={{ request.GET.next }} >
+                
+                <button class="btn btn-lg btn-primary w-100 mb-3" type="submit">Войти</button>
+            </form>
+        </div>
+    </div>
+{% endblock  %}

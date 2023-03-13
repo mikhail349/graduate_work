@@ -9,6 +9,7 @@ class Client(models.Model):
 
     """
     id = models.UUIDField(primary_key=True)
+    email = models.EmailField()
 
     def __str__(self) -> str:
         """Магический метод текстового представления модели.
@@ -17,4 +18,4 @@ class Client(models.Model):
             str: текстовое представление модели
 
         """
-        return str(self.id)
+        return str(self.email)

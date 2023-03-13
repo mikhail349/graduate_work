@@ -5,7 +5,7 @@ import jwt
 from django.http import JsonResponse
 
 from auth import messages as msg
-from config.components.jwt import JWT_AUTH
+from django.conf import settings
 
 
 def response_401(msg: str) -> JsonResponse:
@@ -38,8 +38,8 @@ def user_required(function):
         try:
             payload = jwt.decode(
                 token,
-                JWT_AUTH["JWT_PUBLIC_KEY"],
-                algorithms=[JWT_AUTH["JWT_ALGORITHM"]]
+                settings.JWT_AUTH["JWT_PUBLIC_KEY"],
+                algorithms=[settings.JWT_AUTH["JWT_ALGORITHM"]]
             )
         except jwt.ExpiredSignatureError:
             return response_401(msg.EXPIRED)
@@ -47,8 +47,13 @@ def user_required(function):
         except jwt.InvalidTokenError:
             return response_401(msg.INVALID_SIGNATURE)
 
-        if 'user_id' not in payload:
+        if 'user_id' not in payload or 'email' not in payload:
             return response_401(msg.INVALID_PAYLOAD)
 
-        return function(self, request, payload['user_id'], *args, **kwargs)
+        user = {
+            'id': payload['user_id'],
+            'email': payload['email'],
+        }
+
+        return function(self, request, user=user, *args, **kwargs)
     return wrap
