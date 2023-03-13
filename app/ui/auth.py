@@ -77,8 +77,13 @@ def get_user_with_tokens(
 def parse_tokens(function):
     """Декоратор аутентификации пользователя из сервиса Auth через cookies.
 
+    Проверяет access-токен на валидность.
     При истечении срока получает новые access- и refresh-токены.
-    Испольузется в декораторах доступа.
+
+    Испольузется в декораторах доступа, которые должны принять и
+    вернуть пару токенов вместе с http-ответом.
+    
+    После этого, обновляет cookies полученными токенами.
     """
     @functools.wraps(function)
     def wrap(request: HttpRequest, *args, **kwargs) -> HttpResponse:
