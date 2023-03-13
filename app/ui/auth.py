@@ -197,7 +197,10 @@ def token_permission_required(permission_name: str):
                             if permission_name not in user.permissions:
                                 res: HttpResponse = render(
                                     request,
-                                    'ui/no_access.html'
+                                    'ui/error.html',
+                                    context={
+                                        'errors': msg.UNAUTHORIZED
+                                    }
                                 )
                                 res.set_cookie(
                                     access_token_name,
