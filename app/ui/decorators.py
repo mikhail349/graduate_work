@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.utils.http import urlencode
 
 from ui.auth_service import auth_service
+from ui.exceptions import UnauthorizedError
 
 
 def get_user(access_token):
@@ -49,11 +50,14 @@ def token_required(function):
                 )
             )
         except jwt.ExpiredSignatureError:
-            new_access_token, new_refresh_token = auth_service.refresh(
-                request.COOKIES.get(
-                    settings.BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME,
+            try:
+                new_access_token, new_refresh_token = auth_service.refresh(
+                    request.COOKIES.get(
+                        settings.BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME,
+                    )
                 )
-            )
+            except UnauthorizedError:
+                return redirect_to_login(request)
             user = get_user(new_access_token)
         except jwt.InvalidTokenError:
             return redirect_to_login(request)
@@ -89,9 +93,12 @@ def token_permission_required(permission_name: str):
             try:
                 user = get_user(request.COOKIES.get(access_token_name))
             except jwt.ExpiredSignatureError:
-                new_access_token, new_refresh_token = auth_service.refresh(
-                    request.COOKIES.get(refresh_token_name)
-                )
+                try:
+                    new_access_token, new_refresh_token = auth_service.refresh(
+                        request.COOKIES.get(refresh_token_name)
+                    )
+                except UnauthorizedError:
+                    return redirect_to_login(request)
                 user = get_user(new_access_token)
             except jwt.InvalidTokenError:
                 return redirect_to_login(request)
@@ -99,7 +106,7 @@ def token_permission_required(permission_name: str):
             if not user['is_superuser']:
                 if permission_name not in user['permissions']:
                     new_access_token, new_refresh_token = auth_service.refresh(
-                        request.COOKIES.get(refresh_token_name)
+                        request.COOKIES.get(refresh_token_name) if not new_refresh_token else new_refresh_token
                     )
                     user = get_user(new_access_token)
 

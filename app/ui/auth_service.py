@@ -3,6 +3,7 @@ from http import HTTPStatus
 import requests
 from django.conf import settings
 
+from ui import messages as msg
 from ui.exceptions import UnauthorizedError
 
 
@@ -35,7 +36,7 @@ class AuthService:
         }
         res = requests.post(self.login_url, json=data)
         if res.status_code == HTTPStatus.UNAUTHORIZED:
-            raise UnauthorizedError()
+            raise UnauthorizedError(msg.NO_ACCESS)
         return res.json()["access_token"], res.json()["refresh_token"]
 
     def logout(self, token: str):
@@ -58,8 +59,11 @@ class AuthService:
             tuple[str, str]: access-токен, refresh-токен
 
         """
+        print('refresh')
         headers = {'Authorization': 'Bearer {}'.format(token)}
         res = requests.post(self.refresh_url, headers=headers)
+        if res.status_code == HTTPStatus.UNAUTHORIZED:
+            raise UnauthorizedError(msg.NO_ACCESS)
         return res.json()["access_token"], res.json()["refresh_token"]
 
 
