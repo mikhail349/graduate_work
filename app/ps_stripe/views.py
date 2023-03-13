@@ -37,7 +37,6 @@ def create_subscription(data):
 
 def update_subscription(data):
     """Обновить подписку."""
-    print(data)
     stripe_subscription_id = data['id']
     start_date = datetime.fromtimestamp(data['current_period_start'])
     end_date = datetime.fromtimestamp(data['current_period_end'])
