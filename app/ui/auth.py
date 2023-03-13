@@ -53,22 +53,6 @@ def get_user(access_token: str) -> User:
     )
 
 
-def render_auth_offline(request: HttpRequest) -> HttpResponse:
-    """Вернуть страницу с ошибкой недоступности Auth сервиса.
-
-    Args:
-        request: http-запрос
-
-    Returns:
-        HttpResponse: http-ответ
-
-    """
-    context = {
-        'error': msg.AUTH_SERVICE_OFFLINE,
-    }
-    return render(request, 'ui/error.html', context=context)
-
-
 def get_user_with_tokens(
     access_token: str,
     refresh_token: str
@@ -98,7 +82,7 @@ def parse_tokens(function):
     и получения новых access- и refresh-токенов (при истечении срока).
     """
     @functools.wraps(function)
-    def wrap(request: HttpRequest, *args, **kwargs):
+    def wrap(request: HttpRequest):
         try:
             user, access_token, refresh_token = get_user_with_tokens(
                 access_token=request.COOKIES.get(ACCESS_TOKEN_NAME),
