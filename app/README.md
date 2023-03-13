@@ -6,7 +6,7 @@
 3. Просматривать историю оформления и отмены подписки по каждому пользователю
 
 ## API-сервис позволяет:
-1. Получать список подписок `GET /api/v1/subscriptions/`
+1. Получать список подписок
 2. Оформлять подписку
 3. Отменять подписку
 
@@ -18,3 +18,5 @@
 4. Выполнить миграции `python manage.py migrate`
 5. Создать суперпользователя `python manage.py createsuperuser`
 6. Запустить dev-сервер `python manage.py runserver`
+7. Запустить celery worker `celery -A config worker -B --loglevel=INFO`
+8. Привязать webhook stripe `stripe listen --forward-to localhost:8000/api/v1/stripe/webhook/`
