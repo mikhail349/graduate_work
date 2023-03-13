@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 import jwt
 from django.conf import settings
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils.http import urlencode
@@ -47,11 +48,18 @@ def get_user(access_token: str) -> User:
     )
 
 
-def redirect_to_login(request):
+def redirect_to_login(request: HttpRequest) -> HttpResponse:
+    """Перенаправить на страницу логина.
+
+    Args:
+        request: http-запрос
+
+    Returns:
+        HttpResponse: http-ответ
+
+    """
     response = redirect(
-        reverse('ui:login')
-        + '?'
-        + urlencode({'next': request.get_full_path()})
+        f'{reverse("ui:login")}?{urlencode({"next": request.get_full_path()})}'
     )
     response.delete_cookie(settings.BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME)
     response.delete_cookie(settings.BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME)
