@@ -5,8 +5,6 @@ from dataclasses import dataclass
 import jwt
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
-
 from requests.exceptions import ConnectionError
 
 from ui import messages as msg
@@ -77,12 +75,13 @@ def get_user_with_tokens(
 
 
 def parse_tokens(function):
-    """
-    Декоратор аутентификации пользователя из сервиса Auth через cookies
-    и получения новых access- и refresh-токенов (при истечении срока).
+    """Декоратор аутентификации пользователя из сервиса Auth через cookies.
+
+    При истечении срока получает новые access- и refresh-токены.
+    Испольузется в декораторах доступа.
     """
     @functools.wraps(function)
-    def wrap(request: HttpRequest):
+    def wrap(request: HttpRequest, *args, **kwargs) -> HttpResponse:
         try:
             user, access_token, refresh_token = get_user_with_tokens(
                 access_token=request.COOKIES.get(ACCESS_TOKEN_NAME),
@@ -95,7 +94,19 @@ def parse_tokens(function):
         except UnauthorizedError:
             return render_error(request, msg.UNAUTHORIZED)
 
-        return function(request, user, access_token, refresh_token)
+        response, access_token, refresh_token = (
+            function(
+                request,
+                user,
+                access_token,
+                refresh_token,
+                *args,
+                **kwargs,
+            )
+        )
+        response.set_cookie(ACCESS_TOKEN_NAME, access_token)
+        response.set_cookie(REFRESH_TOKEN_NAME, refresh_token)
+        return response
     return wrap
 
 
@@ -110,11 +121,9 @@ def token_required(function):
         refresh_token: str,
         *args,
         **kwargs
-    ) -> HttpResponse:
-        response: HttpResponse = function(request, user, *args, **kwargs)
-        response.set_cookie(ACCESS_TOKEN_NAME, access_token)
-        response.set_cookie(REFRESH_TOKEN_NAME, refresh_token)
-        return response
+    ) -> tuple[HttpResponse, str, str]:
+        response = function(request, user, *args, **kwargs)
+        return response, access_token, refresh_token
     return wrap
 
 
@@ -130,7 +139,7 @@ def token_permission_required(permission_name: str):
             refresh_token: str,
             *args,
             **kwargs
-        ) -> HttpResponse:
+        ) -> tuple[HttpResponse, str, str]:
             if not user.is_superuser:
                 if permission_name not in user.permissions:
                     try:
@@ -139,19 +148,34 @@ def token_permission_required(permission_name: str):
                         )
                         user = get_user(access_token)
                     except ConnectionError:
-                        return render_error(request, msg.AUTH_SERVICE_OFFLINE)
-                    except (jwt.InvalidTokenError, jwt.ExpiredSignatureError):
-                        return redirect_to_login(request)
-                    except UnauthorizedError:
-                        return render_error(request, msg.UNAUTHORIZED)
+                        return (
+                            render_error(request, msg.AUTH_SERVICE_OFFLINE),
+                            access_token,
+                            refresh_token,
+                        )
+                    except (
+                        jwt.InvalidTokenError,
+                        jwt.ExpiredSignatureError,
+                        UnauthorizedError
+                    ):
+                        return (
+                            redirect_to_login(request),
+                            access_token,
+                            refresh_token,
+                        )
 
                     if not user.is_superuser:
                         if permission_name not in user.permissions:
-                            return render_error(request, msg.UNAUTHORIZED)
+                            return (
+                                render_error(request, msg.UNAUTHORIZED),
+                                access_token,
+                                refresh_token,
+                            )
 
-            response: HttpResponse = function(request, user, *args, **kwargs)
-            response.set_cookie(ACCESS_TOKEN_NAME, access_token)
-            response.set_cookie(REFRESH_TOKEN_NAME, refresh_token)
-            return response
+            return (
+                function(request, user, *args, **kwargs),
+                access_token,
+                refresh_token,
+            )
         return wrap
     return inner
