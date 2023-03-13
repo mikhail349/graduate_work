@@ -39,6 +39,7 @@ def has_permission(user: User, permission_name: str) -> bool:
     """
     return user.is_superuser or permission_name in user.permissions
 
+
 def get_user(access_token: str) -> User:
     """Получить пользователя из access-токена.
 
