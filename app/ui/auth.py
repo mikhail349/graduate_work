@@ -78,10 +78,11 @@ def render_auth_offline(request: HttpRequest) -> HttpResponse:
         HttpResponse: http-ответ
 
     """
-    context={
+    context = {
         'error': msg.AUTH_SERVICE_OFFLINE,
     }
     return render(request, 'ui/error.html', context=context)
+
 
 def get_user_with_tokens(
     access_token: str,
@@ -134,7 +135,12 @@ def token_required(function):
             if not user:
                 return redirect_to_login(request)
 
-            response: HttpResponse = function(request, user=user, *args, **kwargs)
+            response: HttpResponse = function(
+                request,
+                user=user,
+                *args,
+                **kwargs,
+            )
             if new_access_token:
                 response.set_cookie(
                     settings.BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME,
