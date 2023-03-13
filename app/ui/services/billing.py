@@ -37,6 +37,9 @@ class BillingService:
         Returns:
             Response: http-ответ
 
+        Raises:
+            UnauthorizedError: ошибка доступа
+
         """
         headers = {'Authorization': 'Bearer {}'.format(token)}
         response = requests.post(self.clients_url, headers=headers)
@@ -53,6 +56,9 @@ class BillingService:
         Returns:
             list: список активных подписок
 
+        Raises:
+            UnauthorizedError: ошибка доступа
+
         """
         headers = {'Authorization': 'Bearer {}'.format(token)}
         response = requests.get(self.subscriptions_url, headers=headers)
@@ -68,6 +74,9 @@ class BillingService:
 
         Returns:
             list: список активных подписок
+
+        Raises:
+            UnauthorizedError: ошибка доступа
 
         """
         headers = {'Authorization': 'Bearer {}'.format(token)}

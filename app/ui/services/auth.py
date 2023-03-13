@@ -34,7 +34,7 @@ class AuthService:
             tuple[str, str]: access-токен, refresh-токен
 
         Raises:
-            UnauthorizedError: неверный логин/пароль
+            UnauthorizedError: ошибка доступа
 
         """
 
@@ -58,6 +58,9 @@ class AuthService:
         Returns:
             Response: http-ответ
 
+        Raises:
+            UnauthorizedError: ошибка доступа
+
         """
         headers = {'Authorization': 'Bearer {}'.format(token)}
         response = requests.post(self.logout_url, headers=headers)
@@ -73,6 +76,9 @@ class AuthService:
 
         Returns:
             tuple[str, str]: access-токен, refresh-токен
+
+        Raises:
+            UnauthorizedError: ошибка доступа
 
         """
         headers = {'Authorization': 'Bearer {}'.format(token)}
