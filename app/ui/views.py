@@ -10,41 +10,8 @@ from ui.services.auth import auth_service
 from ui.services.billing import billing_service
 from ui.auth import token_required, token_permission_required, User
 from ui.exceptions import UnauthorizedError
+from ui.utils import render_error, render_login_error
 from ps_stripe.models import Customer, Product
-
-
-def render_login_error(request: HttpRequest, error_msg: str) -> HttpResponse:
-    """Отрендерить страницу логина с текстом ошибки.
-
-    Args:
-        request: http-запрос
-        error_msg: текст ошибки
-
-    Returns:
-        HttpResponse: страница логина
-
-    """
-    context = {
-        'errors': error_msg
-    }
-    return render(request, 'ui/login.html', context=context)
-
-
-def render_error(request: HttpRequest, error_msg: str) -> HttpResponse:
-    """Отрендерить страницу с ошибкой.
-
-    Args:
-        request: http-запрос
-        error_msg: текст ошибки
-
-    Returns:
-        HttpResponse: страница с ошибкой
-
-    """
-    context = {
-        'error': error_msg
-    }
-    return render(request, 'ui/error.html', context=context)
 
 
 def index(request: HttpRequest) -> HttpResponse:

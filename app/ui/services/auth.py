@@ -45,7 +45,7 @@ class AuthService:
         response = requests.post(self.login_url, json=data)
         if response.status_code != HTTPStatus.OK:
             raise UnauthorizedError(msg.UNAUTHORIZED)
-        
+
         response_json = response.json()
         return response_json["access_token"], response_json["refresh_token"]
 
