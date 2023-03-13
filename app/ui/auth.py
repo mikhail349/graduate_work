@@ -26,6 +26,19 @@ class User:
     access_token: str
 
 
+def has_permission(user: User, permission_name: str) -> bool:
+    """Проверить, имеет ли пользователь доступ к праву.
+
+    Args:
+        user: инстанс пользователя
+        permission_name: название права
+
+    Returns:
+        bool: имеет/не имеет
+
+    """
+    return user.is_superuser or permission_name in user.permissions
+
 def get_user(access_token: str) -> User:
     """Получить пользователя из access-токена.
 
@@ -145,37 +158,35 @@ def token_permission_required(permission_name: str):
             *args,
             **kwargs
         ) -> tuple[HttpResponse, str, str]:
-            if not user.is_superuser:
-                if permission_name not in user.permissions:
-                    try:
-                        access_token, refresh_token = (
-                            auth_service.refresh(refresh_token)
-                        )
-                        user = get_user(access_token)
-                    except ConnectionError:
-                        return (
-                            render_error(request, msg.AUTH_SERVICE_OFFLINE),
-                            access_token,
-                            refresh_token,
-                        )
-                    except (
-                        jwt.InvalidTokenError,
-                        jwt.ExpiredSignatureError,
-                        UnauthorizedError
-                    ):
-                        return (
-                            redirect_to_login(request),
-                            access_token,
-                            refresh_token,
-                        )
+            if not has_permission(user, permission_name):
+                try:
+                    access_token, refresh_token = (
+                        auth_service.refresh(refresh_token)
+                    )
+                    user = get_user(access_token)
+                except ConnectionError:
+                    return (
+                        render_error(request, msg.AUTH_SERVICE_OFFLINE),
+                        access_token,
+                        refresh_token,
+                    )
+                except (
+                    jwt.InvalidTokenError,
+                    jwt.ExpiredSignatureError,
+                    UnauthorizedError
+                ):
+                    return (
+                        redirect_to_login(request),
+                        access_token,
+                        refresh_token,
+                    )
 
-                    if not user.is_superuser:
-                        if permission_name not in user.permissions:
-                            return (
-                                render_error(request, msg.UNAUTHORIZED),
-                                access_token,
-                                refresh_token,
-                            )
+                if not has_permission(user, permission_name):
+                    return (
+                        render_error(request, msg.UNAUTHORIZED),
+                        access_token,
+                        refresh_token,
+                    )
 
             return (
                 function(request, user, *args, **kwargs),
