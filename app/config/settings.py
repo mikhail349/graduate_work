@@ -41,4 +41,5 @@ include(
     'components/payment_service.py',
     'components/celery.py',
     'components/auth_api.py',
+    'components/logger.py',
 )
