@@ -1,6 +1,7 @@
 from http import HTTPStatus
 
 import requests
+from requests import Response
 from django.conf import settings
 
 from ui import messages as msg
@@ -8,7 +9,14 @@ from ui.exceptions import UnauthorizedError
 
 
 class AuthService:
-    """Класс для взаимодействия с Auth Service."""
+    """Класс для взаимодействия с Auth Service.
+
+    Args:
+        login_url: URL логина
+        logout_url: URL логаута
+        refresh_url: URL обновления access-токена
+
+    """
 
     def __init__(self, login_url: str, logout_url: str, refresh_url: str):
         self.login_url = login_url
@@ -39,15 +47,18 @@ class AuthService:
             raise UnauthorizedError(msg.NO_ACCESS)
         return res.json()["access_token"], res.json()["refresh_token"]
 
-    def logout(self, token: str):
+    def logout(self, token: str) -> Response:
         """Разлогинить пользователя.
 
         Args:
             token: access-токен
 
+        Returns:
+            Response: http-ответ
+
         """
         headers = {'Authorization': 'Bearer {}'.format(token)}
-        requests.post(self.logout_url, headers=headers)
+        return requests.post(self.logout_url, headers=headers)
 
     def refresh(self, token: str) -> tuple[str, str]:
         """Обновить токены на основани refresh-токена.
@@ -59,7 +70,6 @@ class AuthService:
             tuple[str, str]: access-токен, refresh-токен
 
         """
-        print('refresh')
         headers = {'Authorization': 'Bearer {}'.format(token)}
         res = requests.post(self.refresh_url, headers=headers)
         if res.status_code == HTTPStatus.UNAUTHORIZED:

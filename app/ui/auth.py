@@ -66,32 +66,57 @@ def redirect_to_login(request: HttpRequest) -> HttpResponse:
     return response
 
 
+def get_user_with_tokens(
+    access_token: str,
+    refresh_token: str
+) -> tuple[User | None, str | None, str | None]:
+    """
+    Получить пользователя и новые токены в случае истечения срока.
+
+    Args:
+        access_token: access-токен
+        refresh_token: refresh-токен
+
+    Returns:
+        tuple[User | None, str | None, str | None]:
+            пользователь или None,
+            новый access-токен или None,
+            новый refresh-токен или None
+    """
+    new_access_token = None
+    new_refresh_token = None
+    try:
+        user = get_user(access_token)
+    except jwt.ExpiredSignatureError:
+        try:
+            new_access_token, new_refresh_token = auth_service.refresh(
+                refresh_token,
+            )
+        except UnauthorizedError:
+            return None, new_access_token, new_refresh_token
+        user = get_user(new_access_token)
+    except jwt.InvalidTokenError:
+        return None, new_access_token, new_refresh_token
+    return user, new_access_token, new_refresh_token
+
+
 def token_required(function):
     """Декоратор аутентификации пользователя из сервиса Auth через cookies."""
     @functools.wraps(function)
-    def wrap(request, *args, **kwargs):
-        new_access_token = None
-        new_refresh_token = None
-        try:
-            user = get_user(
-                request.COOKIES.get(
-                    settings.BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME,
-                )
-            )
-        except jwt.ExpiredSignatureError:
-            try:
-                new_access_token, new_refresh_token = auth_service.refresh(
-                    request.COOKIES.get(
-                        settings.BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME,
-                    )
-                )
-            except UnauthorizedError:
-                return redirect_to_login(request)
-            user = get_user(new_access_token)
-        except jwt.InvalidTokenError:
+    def wrap(request: HttpRequest, *args, **kwargs):
+        user, new_access_token, new_refresh_token = get_user_with_tokens(
+            access_token=request.COOKIES.get(
+                settings.BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME,
+            ),
+            refresh_token=request.COOKIES.get(
+                settings.BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME,
+            ),
+        )
+
+        if not user:
             return redirect_to_login(request)
 
-        response = function(request, user=user, *args, **kwargs)
+        response: HttpResponse = function(request, user=user, *args, **kwargs)
         if new_access_token:
             response.set_cookie(
                 settings.BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME,
@@ -110,49 +135,52 @@ def token_permission_required(permission_name: str):
     """Декоратор проверки прав пользователя из сервиса Auth через cookies."""
     def inner(function):
         @functools.wraps(function)
-        def wrap(request, *args, **kwargs):
+        def wrap(request: HttpRequest, *args, **kwargs):
             access_token_name = (
                 settings.BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME
             )
             refresh_token_name = (
                 settings.BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME
             )
-            new_access_token = None
-            new_refresh_token = None
-            try:
-                user = get_user(request.COOKIES.get(access_token_name))
-            except jwt.ExpiredSignatureError:
-                try:
-                    new_access_token, new_refresh_token = auth_service.refresh(
-                        request.COOKIES.get(refresh_token_name)
-                    )
-                except UnauthorizedError:
-                    return redirect_to_login(request)
-                user = get_user(new_access_token)
-            except jwt.InvalidTokenError:
+
+            user, new_access_token, new_refresh_token = get_user_with_tokens(
+                access_token=request.COOKIES.get(access_token_name),
+                refresh_token=request.COOKIES.get(refresh_token_name),
+            )
+
+            if not user:
                 return redirect_to_login(request)
 
             if not user.is_superuser:
                 if permission_name not in user.permissions:
                     new_access_token, new_refresh_token = auth_service.refresh(
-                        request.COOKIES.get(refresh_token_name) if not new_refresh_token else new_refresh_token
+                        request.COOKIES.get(refresh_token_name)
+                        if not new_refresh_token else new_refresh_token
                     )
                     user = get_user(new_access_token)
 
                     if not user.is_superuser:
                         if permission_name not in user.permissions:
-                            response = render(request, 'ui/no_access.html')
-                            response.set_cookie(
+                            res: HttpResponse = render(
+                                request,
+                                'ui/no_access.html'
+                            )
+                            res.set_cookie(
                                 access_token_name,
                                 new_access_token,
                             )
-                            response.set_cookie(
+                            res.set_cookie(
                                 refresh_token_name,
                                 new_refresh_token,
                             )
-                            return response
+                            return res
 
-            response = function(request, user=user, *args, **kwargs)
+            response: HttpResponse = function(
+                request,
+                user=user,
+                *args,
+                **kwargs,
+            )
             if new_access_token:
                 response.set_cookie(
                     access_token_name,
@@ -164,6 +192,5 @@ def token_permission_required(permission_name: str):
                     new_refresh_token,
                 )
             return response
-
         return wrap
     return inner

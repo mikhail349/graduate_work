@@ -1,6 +1,6 @@
 import stripe
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from requests.exceptions import ConnectionError
@@ -13,18 +13,46 @@ from ui.exceptions import UnauthorizedError
 from ps_stripe.models import Customer, Product
 
 
-def render_login_error(request, error_msg: str) -> HttpResponse:
+def render_login_error(request: HttpRequest, error_msg: str) -> HttpResponse:
+    """Отрендерить страницу логина с текстом ошибки.
+
+    Args:
+        request: http-запрос
+        error_msg: текст ошибки
+
+    Returns:
+        HttpResponse: страница логина
+
+    """
     context = {
         'errors': error_msg
     }
     return render(request, 'ui/login.html', context=context)
 
 
-def index(request):
+def index(request: HttpRequest) -> HttpResponse:
+    """View домашней страницы.
+
+    Args:
+        request: http-запрос
+
+    Returns:
+        HttpResponse: домашняя страница
+
+    """
     return render(request, 'ui/main.html')
 
 
-def login(request):
+def login(request: HttpRequest) -> HttpResponse:
+    """View страницы логина.
+
+    Args:
+        request: http-запрос
+
+    Returns:
+        HttpResponse: домашняя страница
+
+    """
     if request.method == 'GET':
         return render(request, 'ui/login.html')
 
@@ -56,7 +84,17 @@ def login(request):
 
 
 @token_required
-def logout(request, user: User):
+def logout(request: HttpRequest, user: User) -> HttpResponse:
+    """View логаута.
+
+    Args:
+        request: http-запрос
+        user: пользователь
+
+    Returns:
+        HttpResponse: домашняя страница
+
+    """
     if request.method == 'POST':
         auth_service.logout(user.access_token)
 
@@ -67,7 +105,17 @@ def logout(request, user: User):
 
 
 @token_required
-def profile(request, user: User):
+def profile(request: HttpRequest, user: User) -> HttpResponse:
+    """View страницы профиля пользователя.
+
+    Args:
+        request: http-запрос
+        user: пользователь
+
+    Returns:
+        HttpResponse: страница профиля пользователя
+
+    """
     subscriptions = billing_service.get_subscriptions(user.access_token)
     user_subscriptions = billing_service.get_user_subscriptions(
         user.access_token
@@ -80,7 +128,17 @@ def profile(request, user: User):
 
 
 @token_required
-def portal(request, user: User):
+def portal(request: HttpRequest, user: User) -> HttpResponse:
+    """View портала подписок пользователя.
+
+    Args:
+        request: http-запрос
+        user: пользователь
+
+    Returns:
+        HttpResponse: портал подписок пользователя
+
+    """
     customer = Customer.objects.get(client__pk=user.id)
     session = stripe.billing_portal.Session.create(
         customer=customer.pk,
@@ -90,7 +148,22 @@ def portal(request, user: User):
 
 
 @token_required
-def create_checkout_session(request, user: User, subscription_id: int):
+def create_checkout_session(
+    request: HttpRequest,
+    user: User,
+    subscription_id: int,
+) -> HttpResponse:
+    """View страницы покупки подписки.
+
+    Args:
+        request: http-запрос
+        user: пользователь
+        subscription_id: ИД подписки
+
+    Returns:
+        HttpResponse: страница покупки подписки
+
+    """
     billing_service.create_client(user.access_token)
     product = Product.objects.get(subscription__id=subscription_id)
     customer = Customer.objects.get(client__pk=user.id)
@@ -109,5 +182,14 @@ def create_checkout_session(request, user: User, subscription_id: int):
 
 
 @token_permission_required('view_hd_movies')
-def hd_movies(request, user):
+def hd_movies(request: HttpRequest, user: User) -> HttpResponse:
+    """View страницы с ограниченным доступом к фильмам в HD.
+
+    Args:
+        request: http-запрос
+        user: пользователь
+
+    Returns:
+        HttpResponse: страница с ограниченным доступом к фильмам в HD
+    """
     return render(request, 'ui/hd_movies.html')

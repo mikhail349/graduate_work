@@ -1,9 +1,17 @@
 import requests
+from requests import Response
 from django.conf import settings
 
 
 class BillingService:
-    """Класс для взаимодействия с Billing Service."""
+    """Класс для взаимодействия с Billing Service.
+
+    Args:
+        subscriptions_url: URL подписок
+        clients_url: URL для работы с клиентами
+        user_subscriptions_url: URL подписок пользователя
+
+    """
 
     def __init__(
         self,
@@ -15,15 +23,18 @@ class BillingService:
         self.clients_url = clients_url
         self.user_subscriptions_url = user_subscriptions_url
 
-    def create_client(self, token: str):
+    def create_client(self, token: str) -> Response:
         """Создать клиента.
 
         Args:
             token: access-токен
 
+        Returns:
+            Response: http-ответ
+
         """
         headers = {'Authorization': 'Bearer {}'.format(token)}
-        requests.post(self.clients_url, headers=headers)
+        return requests.post(self.clients_url, headers=headers)
 
     def get_subscriptions(self, token: str) -> list:
         """Получить список активных подписок.
