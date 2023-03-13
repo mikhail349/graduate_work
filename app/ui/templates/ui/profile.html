@@ -3,6 +3,9 @@
 
 {% block content %}
     <div class="container-lg">
+        <h4 class="mb-3">Мой профиль</h4>
+        <p class="fw-normal">Эл. почта: {{ email }}</p>
+
         {% if user_subscriptions %}
             <h4 class="mb-3">Мои подписки</h4>
             <div class="row mb-3">

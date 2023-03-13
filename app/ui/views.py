@@ -123,6 +123,7 @@ def profile(request: HttpRequest, user: User) -> HttpResponse:
     context = {
         'subscriptions': subscriptions,
         'user_subscriptions': user_subscriptions,
+        'email': user.email,
     }
     return render(request, 'ui/profile.html', context=context)
 
