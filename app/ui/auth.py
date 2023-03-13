@@ -199,7 +199,7 @@ def token_permission_required(permission_name: str):
                                     request,
                                     'ui/error.html',
                                     context={
-                                        'errors': msg.UNAUTHORIZED
+                                        'error': msg.UNAUTHORIZED
                                     }
                                 )
                                 res.set_cookie(
