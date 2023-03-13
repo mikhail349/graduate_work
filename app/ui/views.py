@@ -6,8 +6,8 @@ from django.urls import reverse
 from requests.exceptions import ConnectionError
 
 from ui import messages as msg
-from ui.auth_service import auth_service
-from ui.billing_service import billing_service
+from ui.services.auth import auth_service
+from ui.services.billing import billing_service
 from ui.auth import token_required, token_permission_required, User
 from ui.exceptions import UnauthorizedError
 from ps_stripe.models import Customer, Product

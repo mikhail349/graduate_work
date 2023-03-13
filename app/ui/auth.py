@@ -10,7 +10,7 @@ from django.urls import reverse
 from django.utils.http import urlencode
 from requests.exceptions import ConnectionError
 
-from ui.auth_service import auth_service
+from ui.services.auth import auth_service
 from ui.exceptions import UnauthorizedError
 from ui import messages as msg
 
