@@ -1,33 +1,17 @@
 import stripe
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from requests.exceptions import ConnectionError
 
-from ui import messages as msg
-from ui.auth_service import auth_service
-from ui.billing_service import billing_service
-from ui.auth import token_required, token_permission_required, User
-from ui.exceptions import UnauthorizedError
 from ps_stripe.models import Customer, Product
-
-
-def render_login_error(request: HttpRequest, error_msg: str) -> HttpResponse:
-    """Отрендерить страницу логина с текстом ошибки.
-
-    Args:
-        request: http-запрос
-        error_msg: текст ошибки
-
-    Returns:
-        HttpResponse: страница логина
-
-    """
-    context = {
-        'errors': error_msg
-    }
-    return render(request, 'ui/login.html', context=context)
+from ui import messages as msg
+from ui.auth import User, token_permission_required, token_required
+from ui.exceptions import UnauthorizedError
+from ui.services.auth import auth_service
+from ui.services.billing import billing_service
+from ui.utils import render_error, render_login_error
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -66,10 +50,10 @@ def login(request: HttpRequest) -> HttpResponse:
                 username,
                 password,
             )
-        except UnauthorizedError:
-            return render_login_error(request, msg.INVALID_CREDENTIALS)
         except ConnectionError:
             return render_login_error(request, msg.AUTH_SERVICE_OFFLINE)
+        except UnauthorizedError:
+            return render_login_error(request, msg.INVALID_CREDENTIALS)
 
         response = redirect(reverse('ui:index') if next == '' else next)
         response.set_cookie(
@@ -99,13 +83,9 @@ def logout(request: HttpRequest, user: User) -> HttpResponse:
         try:
             auth_service.logout(user.access_token)
         except ConnectionError:
-            return render(
-                request,
-                'ui/error.html',
-                context={
-                    'error': msg.AUTH_SERVICE_OFFLINE,
-                },
-            )
+            return render_error(request, msg.AUTH_SERVICE_OFFLINE)
+        except UnauthorizedError:
+            pass
 
         response = redirect(reverse('ui:index'))
         response.delete_cookie(settings.BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME)
@@ -125,10 +105,16 @@ def profile(request: HttpRequest, user: User) -> HttpResponse:
         HttpResponse: страница профиля пользователя
 
     """
-    subscriptions = billing_service.get_subscriptions(user.access_token)
-    user_subscriptions = billing_service.get_user_subscriptions(
-        user.access_token
-    )
+    try:
+        subscriptions = billing_service.get_subscriptions(user.access_token)
+        user_subscriptions = (
+            billing_service.get_user_subscriptions(user.access_token)
+        )
+    except ConnectionError:
+        return render_error(request, msg.BILLING_SERVICE_OFFLINE)
+    except UnauthorizedError:
+        return render_login_error(request, msg.INVALID_CREDENTIALS)
+
     context = {
         'subscriptions': subscriptions,
         'user_subscriptions': user_subscriptions,
@@ -174,7 +160,13 @@ def create_checkout_session(
         HttpResponse: страница покупки подписки
 
     """
-    billing_service.create_client(user.access_token)
+    try:
+        billing_service.create_client(user.access_token)
+    except ConnectionError:
+        return render_error(request, msg.BILLING_SERVICE_OFFLINE)
+    except UnauthorizedError:
+        return render_login_error(request, msg.INVALID_CREDENTIALS)
+
     product = Product.objects.get(subscription__id=subscription_id)
     customer = Customer.objects.get(client__pk=user.id)
     stripe_product = stripe.Product.retrieve(product.pk)

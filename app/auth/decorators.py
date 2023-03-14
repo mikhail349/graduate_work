@@ -1,11 +1,20 @@
 import functools
+import uuid
+from dataclasses import dataclass
 from http import HTTPStatus
 
 import jwt
+from django.conf import settings
 from django.http import JsonResponse
 
 from auth import messages as msg
-from django.conf import settings
+
+
+@dataclass
+class User:
+    """Класс пользователя."""
+    id: uuid.UUID
+    email: str
 
 
 def response_401(msg: str) -> JsonResponse:
@@ -50,10 +59,6 @@ def user_required(function):
         if 'user_id' not in payload or 'email' not in payload:
             return response_401(msg.INVALID_PAYLOAD)
 
-        user = {
-            'id': payload['user_id'],
-            'email': payload['email'],
-        }
-
-        return function(self, request, user=user, *args, **kwargs)
+        user = User(id=payload['user_id'], email=payload['email'])
+        return function(self, request, user, *args, **kwargs)
     return wrap

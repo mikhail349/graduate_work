@@ -1,9 +1,8 @@
 from django.contrib import admin
 
 from subscriptions.forms import PaymentHistoryForm, SubscriptionForm
-from subscriptions.models import (
-    PaymentHistory, Subscription, ClientSubscription
-)
+from subscriptions.models import (ClientSubscription, PaymentHistory,
+                                  Subscription)
 
 
 class SubscriptionAdmin(admin.ModelAdmin):

@@ -1,6 +1,11 @@
+from http import HTTPStatus
+
 import requests
-from requests import Response
 from django.conf import settings
+from requests import Response
+
+from ui import messages as msg
+from ui.exceptions import UnauthorizedError
 
 
 class BillingService:
@@ -32,9 +37,15 @@ class BillingService:
         Returns:
             Response: http-ответ
 
+        Raises:
+            UnauthorizedError: ошибка доступа
+
         """
         headers = {'Authorization': 'Bearer {}'.format(token)}
-        return requests.post(self.clients_url, headers=headers)
+        response = requests.post(self.clients_url, headers=headers)
+        if response.status_code != HTTPStatus.OK:
+            raise UnauthorizedError(msg.UNAUTHORIZED)
+        return response
 
     def get_subscriptions(self, token: str) -> list:
         """Получить список активных подписок.
@@ -45,9 +56,14 @@ class BillingService:
         Returns:
             list: список активных подписок
 
+        Raises:
+            UnauthorizedError: ошибка доступа
+
         """
         headers = {'Authorization': 'Bearer {}'.format(token)}
         response = requests.get(self.subscriptions_url, headers=headers)
+        if response.status_code != HTTPStatus.OK:
+            raise UnauthorizedError(msg.UNAUTHORIZED)
         return response.json()
 
     def get_user_subscriptions(self, token: str) -> list:
@@ -59,9 +75,14 @@ class BillingService:
         Returns:
             list: список активных подписок
 
+        Raises:
+            UnauthorizedError: ошибка доступа
+
         """
         headers = {'Authorization': 'Bearer {}'.format(token)}
         response = requests.get(self.user_subscriptions_url, headers=headers)
+        if response.status_code != HTTPStatus.OK:
+            raise UnauthorizedError(msg.UNAUTHORIZED)
         return response.json()
 
 

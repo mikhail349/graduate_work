@@ -1,9 +1,13 @@
+{% load i18n %}
+
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
   <div class="container-lg">
-    <a class="navbar-brand" href="{% url 'ui:index' %}">Онлайн-кинотеатр</a>
+    <a class="navbar-brand" href="{% url 'ui:index' %}">{% translate 'Онлайн-кинотеатр' %}</a>
     <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
       <li class="nav-item">
-        <a class="nav-link active" aria-current="page" href="{% url 'ui:hd_movies' %}">Фильмы в HD</a>
+        <a class="nav-link active" aria-current="page" href="{% url 'ui:hd_movies' %}">
+          {% translate 'Фильмы в HD' %}
+        </a>
       </li>
     </ul>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -13,17 +17,23 @@
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
           {% if request.COOKIES.auth_access_token %} <!-- Очень insecurely. Сделано только для демо. -->
             <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="{% url 'ui:profile' %}">Профиль</a>
+              <a class="nav-link active" aria-current="page" href="{% url 'ui:profile' %}">
+                {% translate 'Профиль' %}
+              </a>
             </li>
             <li class="nav-item">
               <form action="{% url 'ui:logout' %}" method="post">
                   {% csrf_token %}
-                  <button class="btn btn-link nav-link" type="submit">Выйти</button>
+                  <button class="btn btn-link nav-link" type="submit">
+                    {% translate 'Выйти' %}
+                  </button>
               </form>
             </li>
           {% else %}
             <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="{% url 'ui:login' %}">Войти</a>
+              <a class="nav-link active" aria-current="page" href="{% url 'ui:login' %}">
+                {% translate 'Войти' %}
+              </a>
             </li>
           {% endif %}
       </ul>

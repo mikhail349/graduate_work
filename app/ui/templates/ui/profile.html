@@ -1,17 +1,18 @@
 {% extends 'ui/main.html' %}
 {% load tags %}
+{% load i18n %}
 
 {% block content %}
     <div class="container-lg">
-        <h4 class="mb-3">Мой профиль</h4>
-        <p class="fw-normal">Эл. почта: {{ email }}</p>
+        <h4 class="mb-3">{% translate 'Мой профиль' %}</h4>
+        <p class="fw-normal">{% translate 'Эл. почта' %}: {{ email }}</p>
 
         {% if user_subscriptions %}
-            <h4 class="mb-3">Мои подписки</h4>
+            <h4 class="mb-3">{% translate 'Мои подписки' %}</h4>
             <div class="row mb-3">
                 {% for user_subscription in user_subscriptions %}
                     <div class="col-4">
-                        <div class="card shadow border-0 rounded-3">
+                        <div class="card shadow border-0 rounded-3 h-100">
                             <div class="card-body">
                                 <h5 class="card-title">{{ user_subscription.subscription.name }}</h5>
                                 <p class="card-text">{{ user_subscription.subscription.description }}</p>
@@ -19,9 +20,9 @@
                             <ul class="list-group list-group-flush border-top">
                                 <li class="list-group-item">
                                     {% if user_subscription.auto_renewal %}
-                                        Следующее списание
+                                        {% translate 'Следующее списание' %}
                                     {% else %}
-                                        Закончится
+                                        {% translate 'Закончится' %}
                                     {% endif %}
                                     {{ user_subscription.end_date|str_to_date|date:'d.m.Y' }}
                                 </li>
@@ -31,16 +32,18 @@
                 {% endfor %}
             </div>
             <div class="mb-3">
-                <a href="{% url 'ui:portal' %}" class="link-primary">Управление подписками</a>
+                <a href="{% url 'ui:portal' %}" class="link-primary">
+                    {% translate 'Управление подписками' %}
+                </a>
             </div>
         {% endif %}
 
-        <h4 class="mb-3">Доступные подписки</h4>
+        <h4 class="mb-3">{% translate 'Доступные подписки' %}</h4>
         {% if subscriptions %}
             <div class="row mb-3">
                 {% for subscription in subscriptions %}
                     <div class="col-4">
-                        <div class="card shadow border-0 rounded-3">
+                        <div class="card shadow border-0 rounded-3 h-100">
                             <div class="card-body">
                                 <h5 class="card-title">{{ subscription.name }}</h5>
                                 <p class="card-text">{{ subscription.description }}</p>
@@ -53,7 +56,7 @@
                                     <a
                                         class="btn btn-primary"
                                         href="{% url 'ui:create_checkout_session' subscription_id=subscription.id %}"
-                                        role="button">Купить
+                                        role="button">{% translate 'Купить' %}
                                     </a>
                                 </li>
                             </ul>
@@ -62,7 +65,7 @@
                 {% endfor %}
             </div>
         {% else %}
-            <p class="fw-light">Нет доступных подписок</p>
+            <p class="fw-light">{% translate 'Нет доступных подписок' %}</p>
         {% endif %}
 
     </div>
