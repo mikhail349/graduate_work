@@ -1,10 +1,11 @@
 from django import forms
 from django.db import models
+from django.utils.translation import gettext as _
 
 
 class CurrencyChoices(models.TextChoices):
     """Перечисление ISO кодов валют."""
-    RUB = 'rub'
+    RUB = 'rub', _('руб.')
 
 
 class MoneyField(forms.DecimalField):

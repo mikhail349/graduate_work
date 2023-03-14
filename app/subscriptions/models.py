@@ -24,8 +24,8 @@ class Subscription(models.Model):
 
     class DurationChoices(models.TextChoices):
         """Перечисление продолжительностей действия подписки."""
-        MONTHLY = 'month'
-        YEARLY = 'year'
+        MONTHLY = 'month', _('месяц')
+        YEARLY = 'year', _('год')
 
     name = models.CharField(max_length=255)
     description = models.TextField()
