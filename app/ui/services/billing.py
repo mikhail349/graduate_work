@@ -1,8 +1,8 @@
 from http import HTTPStatus
 
 import requests
-from requests import Response
 from django.conf import settings
+from requests import Response
 
 from ui import messages as msg
 from ui.exceptions import UnauthorizedError

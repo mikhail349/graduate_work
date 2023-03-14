@@ -8,9 +8,9 @@ from django.http import HttpRequest, HttpResponse
 from requests.exceptions import ConnectionError
 
 from ui import messages as msg
-from ui.services.auth import auth_service
 from ui.exceptions import UnauthorizedError
-from ui.utils import render_error, redirect_to_login
+from ui.services.auth import auth_service
+from ui.utils import redirect_to_login, render_error
 
 ACCESS_TOKEN_NAME = settings.BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME
 REFRESH_TOKEN_NAME = settings.BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME

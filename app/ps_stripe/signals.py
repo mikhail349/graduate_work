@@ -3,8 +3,8 @@ from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 
 from clients.models import Client
-from subscriptions.models import Subscription
 from ps_stripe.models import Customer, Product
+from subscriptions.models import Subscription
 
 
 @receiver(post_save, sender=Subscription)

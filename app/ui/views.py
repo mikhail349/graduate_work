@@ -1,17 +1,17 @@
 import stripe
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from requests.exceptions import ConnectionError
 
+from ps_stripe.models import Customer, Product
 from ui import messages as msg
-from ui.auth import token_required, token_permission_required, User
+from ui.auth import User, token_permission_required, token_required
 from ui.exceptions import UnauthorizedError
 from ui.services.auth import auth_service
 from ui.services.billing import billing_service
 from ui.utils import render_error, render_login_error
-from ps_stripe.models import Customer, Product
 
 
 def index(request: HttpRequest) -> HttpResponse:

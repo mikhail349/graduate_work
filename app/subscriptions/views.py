@@ -1,14 +1,12 @@
+from django.db.models import Exists, OuterRef, Q
 from django.http import HttpRequest
-from django.db.models import Exists, Q, OuterRef
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from auth.decorators import user_required, User
-from subscriptions.models import Subscription, ClientSubscription
-from subscriptions.serializers import (
-    ClientSubscriptionSerializer,
-    SubscriptionSerializer
-)
+from auth.decorators import User, user_required
+from subscriptions.models import ClientSubscription, Subscription
+from subscriptions.serializers import (ClientSubscriptionSerializer,
+                                       SubscriptionSerializer)
 
 
 class SubscriptionsAPI(APIView):

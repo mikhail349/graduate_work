@@ -1,6 +1,5 @@
 import os
 
-
 LOG_FILE = os.environ.get("LOG_FILE")
 LOG_FILE_MAX_BYTES = int(os.environ.get("LOG_FILE_MAX_BYTES", 1000))
 

@@ -4,10 +4,10 @@ from dataclasses import dataclass
 from http import HTTPStatus
 
 import jwt
+from django.conf import settings
 from django.http import JsonResponse
 
 from auth import messages as msg
-from django.conf import settings
 
 
 @dataclass
