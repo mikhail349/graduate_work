@@ -1,8 +1,9 @@
 {% extends 'ui/main.html' %}
+{% load i18n %}
 
 {% block content %}
     <div class="container-lg">
-        <h4 class="mb-3">Фильмы в HD</h4>
-        <p class="fw-light">Уже скоро!</p>
+        <h4 class="mb-3">{% translate 'Фильмы в HD' %}</h4>
+        <p class="fw-light">{% translate 'Уже скоро!' %}</p>
     </div>
 {% endblock  %}
