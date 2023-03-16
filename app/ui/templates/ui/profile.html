@@ -5,19 +5,29 @@
 {% block content %}
     <div class="container-lg">
         <h4 class="mb-3">{% translate 'Мой профиль' %}</h4>
-        <p class="fw-normal">{% translate 'Эл. почта' %}: {{ email }}</p>
+        <div class="card shadow-sm border-0 rounded-4 h-100 mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{% translate 'Эл. почта' %}</h5>
+                <p class="card-text">{{ email }}</p>
+            </div>
+        </div>
 
         {% if user_subscriptions %}
-            <h4 class="mb-3">{% translate 'Мои подписки' %}</h4>
+            <h4>{% translate 'Мои подписки' %}</h4> 
+            <div class="mb-3">
+                <a href="{% url 'ui:portal' %}" class="link-primary">
+                    {% translate 'Управление подписками' %}
+                </a>
+            </div>
             <div class="row mb-3">
                 {% for user_subscription in user_subscriptions %}
                     <div class="col-4">
-                        <div class="card shadow border-0 rounded-3 h-100">
+                        <div class="card shadow-sm border-0 rounded-4 h-100">
                             <div class="card-body">
                                 <h5 class="card-title">{{ user_subscription.subscription.name }}</h5>
                                 <p class="card-text">{{ user_subscription.subscription.description }}</p>
                             </div>
-                            <ul class="list-group list-group-flush border-top">
+                            <ul class="list-group list-group-flush border-top rounded-bottom-4">
                                 <li class="list-group-item">
                                     {% if user_subscription.auto_renewal %}
                                         {% translate 'Следующее списание' %}
@@ -31,11 +41,6 @@
                     </div>
                 {% endfor %}
             </div>
-            <div class="mb-3">
-                <a href="{% url 'ui:portal' %}" class="link-primary">
-                    {% translate 'Управление подписками' %}
-                </a>
-            </div>
         {% endif %}
 
         <h4 class="mb-3">{% translate 'Доступные подписки' %}</h4>
@@ -43,21 +48,27 @@
             <div class="row mb-3">
                 {% for subscription in subscriptions %}
                     <div class="col-4">
-                        <div class="card shadow border-0 rounded-3 h-100">
+                        <div class="card shadow-sm border-0 rounded-4 h-100">
                             <div class="card-body">
                                 <h5 class="card-title">{{ subscription.name }}</h5>
                                 <p class="card-text">{{ subscription.description }}</p>
                             </div>
-                            <ul class="list-group list-group-flush border-top">
+                            <ul class="list-group list-group-flush border-top rounded-bottom-4">
                                 <li class="list-group-item">
-                                    {{ subscription.price|floatformat:2 }} {{ subscription.currency }} / {{ subscription.duration }}
-                                </li>
-                                <li class="list-group-item">
-                                    <a
-                                        class="btn btn-primary"
-                                        href="{% url 'ui:create_checkout_session' subscription_id=subscription.id %}"
-                                        role="button">{% translate 'Купить' %}
-                                    </a>
+                                    <div class="d-flex bd-highlight">
+                                        <div class="flex-grow-1 bd-highlight">
+                                            <span class="fs-3 text-primary">{{ subscription.price|floatformat:2 }}</span> {{ subscription.currency }} / {{ subscription.duration }}
+                                        </div>
+                                        <div class="bd-highlight">
+                                            <a
+                                                class="btn btn-primary"
+                                                href="{% url 'ui:create_checkout_session' subscription_id=subscription.id %}"
+                                                role="button">{% translate 'Купить' %}
+                                            </a>
+                                        </div>
+                                    </div>
+                                    
+
                                 </li>
                             </ul>
                         </div>

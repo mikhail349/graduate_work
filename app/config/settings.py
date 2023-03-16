@@ -18,13 +18,15 @@ ROOT_URLCONF = 'config.urls'
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru-RU'
 
 TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
 USE_TZ = True
+
+DECIMAL_SEPARATOR = ','
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')

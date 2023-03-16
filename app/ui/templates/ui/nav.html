@@ -1,6 +1,6 @@
 {% load i18n %}
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
+<nav class="navbar navbar-expand-lg navbar-light bg-white">
   <div class="container-lg">
     <a class="navbar-brand" href="{% url 'ui:index' %}">{% translate 'Онлайн-кинотеатр' %}</a>
     <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
@@ -24,7 +24,7 @@
             <li class="nav-item">
               <form action="{% url 'ui:logout' %}" method="post">
                   {% csrf_token %}
-                  <button class="btn btn-link nav-link" type="submit">
+                  <button class="btn btn-link nav-link text-danger" type="submit">
                     {% translate 'Выйти' %}
                   </button>
               </form>
