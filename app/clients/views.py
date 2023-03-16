@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from django.http import HttpRequest
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -10,7 +12,19 @@ class ClientsAPI(APIView):
     """API класс клиентов."""
 
     @user_required
-    def post(self, request: HttpRequest, user: User):
-        """Добавить клиента, если отсутствует."""
-        Client.objects.get_or_create(id=user.id, email=user.email)
+    def post(self, request: HttpRequest, user: User) -> Response:
+        """Добавить клиента, если отсутствует.
+
+        Args:
+            request: http-запрос
+            user: инстанс пользователя
+
+        Returns:
+            Response: http-ответ в формате json
+
+        """
+        _, created = Client.objects.get_or_create(id=user.id,
+                                                  email=user.email)
+        if created:
+            return Response(status=HTTPStatus.CREATED)
         return Response()

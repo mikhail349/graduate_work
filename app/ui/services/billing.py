@@ -43,7 +43,7 @@ class BillingService:
         """
         headers = {'Authorization': 'Bearer {}'.format(token)}
         response = requests.post(self.clients_url, headers=headers)
-        if response.status_code != HTTPStatus.OK:
+        if response.status_code not in (HTTPStatus.OK, HTTPStatus.CREATED):
             raise UnauthorizedError(msg.UNAUTHORIZED)
         return response
 
