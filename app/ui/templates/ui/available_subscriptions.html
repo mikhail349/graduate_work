@@ -1,0 +1,35 @@
+{% load i18n %}
+
+<h4 class="mb-3">{% translate 'Доступные подписки' %}</h4>
+{% if subscriptions %}
+    <div class="row mb-3">
+        {% for subscription in subscriptions %}
+            <div class="col-4">
+                <div class="card shadow-sm border-0 rounded-4 h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ subscription.name }}</h5>
+                        <p class="card-text">{{ subscription.description }}</p>
+                    </div>
+                    <ul class="list-group list-group-flush border-top rounded-bottom-4">
+                        <li class="list-group-item">
+                            <div class="d-flex bd-highlight">
+                                <div class="flex-grow-1 bd-highlight">
+                                    <span class="fs-3 text-primary">{{ subscription.price|floatformat:2 }}</span> {{ subscription.currency }} / {{ subscription.duration }}
+                                </div>
+                                <div class="bd-highlight">
+                                    <a
+                                        class="btn btn-primary"
+                                        href="{% url 'ui:create_checkout_session' subscription_id=subscription.id %}?next={{request.get_full_path}}"
+                                        role="button">{% translate 'Купить' %}
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p class="fw-light">{% translate 'Нет доступных подписок' %}</p>
+{% endif %}

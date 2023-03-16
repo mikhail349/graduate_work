@@ -1,0 +1,46 @@
+{% extends 'ui/main.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+    <div class="container-lg">
+        <h4 class="mb-3">{% translate 'Фильмы' %}</h4>
+        <div class="row mb-3">
+            {% for movie in movies %}
+                <div class="col-4">
+                    <div class="card shadow-sm border-0 rounded-4 h-100">
+                        {% with movie.pic_path as image_static %}
+                            <img src="{% static image_static %}" class="card-img-top rounded-top-4" alt="...">
+                        {% endwith %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ movie.name }}</h5>
+                            <p class="card-text">{{ movie.description }}</p>
+                        </div>
+                        <ul class="list-group list-group-flush border-top rounded-bottom-4">
+                            <li class="list-group-item">
+                                <div class="d-flex">
+                                    <div class="flex-grow-1">{{ movie.duration }}</div>
+                                    <div>{{ movie.genres }}</div>
+                                </div>
+                            </li>
+                            <li class="list-group-item">
+                                <div class="d-flex">
+                                    <div class="flex-fill pe-2">
+                                        <a class="btn btn-sm btn-outline-primary w-100"
+                                            href="{% url 'ui:movie' id=movie.id %}"
+                                            role="button">{% translate 'Смотреть в SD' %}</a>
+                                    </div>
+                                    <div class="flex-fill ps-2">
+                                        <a class="btn btn-sm btn-primary w-100"
+                                            href="{% url 'ui:hd_movie' id=movie.id %}"
+                                            role="button">{% translate 'Смотреть в HD' %}</a>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock  %}

@@ -1,0 +1,13 @@
+{% extends 'ui/main.html' %}
+{% load i18n %}
+{% load tags %}
+
+{% block content %}
+    <div class="container-lg">
+        <h4 class="mb-3">{{ movie.name }} <span class="badge {% get_bg_by_quality quality %}">{{ quality|upper }}</span></h4>
+        <video class="w-100 rounded-4" height="540" controls>
+            <source type="video/mp4">
+            {% translate 'Ваш браузер не поддерживает данный формат видео.' %}
+        </video>
+    </div>
+{% endblock  %}

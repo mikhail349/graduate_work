@@ -1,0 +1,14 @@
+{% extends 'ui/main.html' %}
+{% load i18n %}
+
+{% block content %}
+    <div class="container-lg">
+        <div class="card shadow-sm border-0 rounded-4 h-100 mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{% translate 'Нет доступа' %}</h5>
+                <p class="card-text">{{ msg }}</p>
+            </div>
+        </div>
+        {% include 'ui/available_subscriptions.html' %}
+    </div>
+{% endblock  %}

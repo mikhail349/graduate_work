@@ -11,7 +11,9 @@ from ui.auth import User, token_permission_required, token_required
 from ui.exceptions import UnauthorizedError
 from ui.services.auth import auth_service
 from ui.services.billing import billing_service
+from ui.services.movies import movies_service
 from ui.utils import render_error, render_login_error
+from django.utils.translation import gettext as _
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -167,31 +169,55 @@ def create_checkout_session(
     except UnauthorizedError:
         return render_login_error(request, msg.INVALID_CREDENTIALS)
 
+    next = request.GET.get('next')
     product = Product.objects.get(subscription__id=subscription_id)
     customer = Customer.objects.get(client__pk=user.id)
     stripe_product = stripe.Product.retrieve(product.pk)
     checkout_session = stripe.checkout.Session.create(
         customer=customer.pk,
-        success_url=request.build_absolute_uri(reverse('ui:profile')),
-        cancel_url=request.build_absolute_uri(reverse('ui:profile')),
+        success_url=request.build_absolute_uri(next),
+        cancel_url=request.build_absolute_uri(next),
         mode='subscription',
         line_items=[{
             'price': stripe_product['default_price'],
             'quantity': 1
         }],
     )
+    print(checkout_session.success_url)
     return redirect(checkout_session.url)
 
 
-@token_permission_required('view_hd_movies')
-def hd_movies(request: HttpRequest, user: User) -> HttpResponse:
-    """View страницы с ограниченным доступом к фильмам в HD.
+def movies(request: HttpRequest) -> HttpResponse:
+    """View страницы с фильмами.
 
     Args:
         request: http-запрос
-        user: пользователь
 
     Returns:
-        HttpResponse: страница с ограниченным доступом к фильмам в HD
+        HttpResponse: страница с фильмами
     """
-    return render(request, 'ui/hd_movies.html')
+    context = {
+        'movies': movies_service.get_movies(),
+    }
+    return render(request, 'ui/movies.html', context=context)
+
+
+@token_required
+def movie(request: HttpRequest, user: User, id: int) -> HttpResponse:
+    context = {
+        'movie': movies_service.get_movie(id),
+        'quality': 'sd',
+    }
+    return render(request, 'ui/movie.html', context=context)
+
+
+@token_permission_required(
+    permission_name='view_hd_movies',
+    no_access_msg=_('К сожалению, у Вас нет доступа на просмотр фильмов в HD'),
+)
+def hd_movie(request: HttpRequest, user: User, id: int) -> HttpResponse:
+    context = {
+        'movie': movies_service.get_movie(id),
+        'quality': 'hd',
+    }
+    return render(request, 'ui/movie.html', context=context)
