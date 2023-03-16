@@ -14,7 +14,7 @@ class SubscriptionAdmin(admin.ModelAdmin):
     def get_readonly_fields(self, request, obj=None):
         if not obj:
             return []
-        return ['duration', 'int_price', 'currency']
+        return ['role_name', 'duration', 'int_price', 'currency']
 
 
 class PaymentHistoryAdmin(admin.ModelAdmin):
