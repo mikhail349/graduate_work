@@ -1,6 +1,6 @@
-from http import HTTPStatus 
+from http import HTTPStatus
 
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
