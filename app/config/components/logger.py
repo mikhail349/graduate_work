@@ -26,11 +26,15 @@ LOGGING = {
             "formatter": "verbose",
         },
     },
+    "root": {
+        "handlers": ["file"],
+        "level": LOG_LEVEL,
+    },
     "loggers": {
         "django": {
             "handlers": ["file"],
-            "level": "DEBUG",
-            "propagate": True,
+            "level": LOG_LEVEL,
+            "propagate": False,
         },
     },
 }

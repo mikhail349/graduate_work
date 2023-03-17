@@ -4,7 +4,7 @@ from datetime import datetime
 from django.utils.timezone import make_aware
 
 from ps_stripe import messages as msg
-from ps_stripe.events.models import (InvoiceEvent, SubscriptonEvent,
+from ps_stripe.events.models import (BaseEvent, InvoiceEvent, SubscriptonEvent,
                                      get_invoice, get_subscription)
 from ps_stripe.events.registry import Event, EventRegistry
 from ps_stripe.models import Customer, Product
@@ -12,6 +12,13 @@ from subscriptions.models import ClientSubscription, PaymentHistory
 from subscriptions.tasks import add_role, delete_role
 
 logger = logging.getLogger(__name__)
+
+def log_error(message: str, stripe_data: BaseEvent):
+    message = '{} {}'.format(
+        msg.CUSTOMER_NOT_FOUND,
+        stripe_data.json()
+    )
+    logger.error(message)  
 
 
 def create_subscription(data: SubscriptonEvent):
@@ -24,13 +31,13 @@ def create_subscription(data: SubscriptonEvent):
     try:
         customer = Customer.objects.get(pk=data.customer)
     except Customer.DoesNotExist:
-        logger.error(msg.CUSTOMER_NOT_FOUND)
+        log_error(msg.CUSTOMER_NOT_FOUND, data)
         return
 
     try:
         product = Product.objects.get(pk=data.plan.product)
     except Product.DoesNotExist:
-        logger.error(msg.PRODUCT_NOT_FOUND)
+        log_error(msg.PRODUCT_NOT_FOUND, data)
         return
 
     stripe_subscription_id = data.id
@@ -67,6 +74,7 @@ def update_subscription(data: SubscriptonEvent):
             payment_system_subscription_id=stripe_subscription_id
         )
     except ClientSubscription.DoesNotExist:
+        log_error(msg.CLIENT_SUBSCRIPTION_NOT_FOUND, data)
         return
 
     client_subscription.start_date = start_date
@@ -87,7 +95,7 @@ def delete_subscription(data: SubscriptonEvent):
             payment_system_subscription_id=data.id
         )
     except ClientSubscription.DoesNotExist:
-        logger.error(msg.CLIENT_SUBSCRIPTION_NOT_FOUND)
+        log_error(msg.CLIENT_SUBSCRIPTION_NOT_FOUND, data)
         return
 
     client_subscription.delete()
@@ -107,7 +115,7 @@ def invoice_paid(data: InvoiceEvent):
     try:
         customer = Customer.objects.get(pk=data.customer)
     except Customer.DoesNotExist:
-        logger.error(msg.CUSTOMER_NOT_FOUND)
+        log_error(msg.CUSTOMER_NOT_FOUND, data)
         return
 
     try:
@@ -115,7 +123,7 @@ def invoice_paid(data: InvoiceEvent):
             pk=data.lines.data[0].price.product,
         )
     except Product.DoesNotExist:
-        logger.error(msg.PRODUCT_NOT_FOUND)
+        log_error(msg.PRODUCT_NOT_FOUND, data)
         return
 
     int_payment_amount = data.amount_paid
