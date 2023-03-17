@@ -5,9 +5,15 @@
 {% block content %}
     <div class="container-lg">
         <h4 class="mb-3">{{ movie.name }} <span class="badge {% get_bg_by_quality quality %}">{{ quality|upper }}</span></h4>
-        <video class="w-100 rounded-4" height="540" controls>
+        <video class="w-100 rounded-4 mb-3" height="540" controls>
             <source type="video/mp4">
             {% translate 'Ваш браузер не поддерживает данный формат видео.' %}
         </video>
+
+        <div class="card shadow-sm border-0 rounded-4 h-100">
+            <div class="card-body">
+                <p class="card-text movie-description">{{ movie.description }}</p>
+            </div>
+        </div>
     </div>
 {% endblock  %}

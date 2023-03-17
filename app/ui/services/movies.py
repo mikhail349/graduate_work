@@ -3,6 +3,7 @@ import os
 from dataclasses import dataclass
 
 from django.conf import settings
+from django.templatetags.static import static
 
 
 @dataclass
@@ -29,7 +30,8 @@ class MoviesService:
         return self.movies.get(id)
 
 movies_service = MoviesService()
-movies_path = os.path.join(settings.BASE_DIR, 'ui', 'data', 'movies.json')
+movies_path = os.path.join(settings.BASE_DIR, 'ui', 'static', 'ui', 'json', 'movies.json')
+
 with open(movies_path, encoding='utf-8') as file:
     movies = json.loads(file.read())
 for movie in movies:
