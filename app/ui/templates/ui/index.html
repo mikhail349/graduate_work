@@ -1,0 +1,17 @@
+{% extends 'ui/main.html' %}
+{% load i18n %}
+
+{% block content %}
+    <div class="container-lg">
+        <div class="px-4 py-5 my-5 text-center">
+            <h1 class="display-5 fw-bold mb-3">{% translate 'Онлайн-кинотеатр Яндекс.Практикум' %}</h1>
+            <p class="lead">
+                {% translate 'Добро пожаловать в наш онлайн-кинотеатр - удобное место для просмотра фильмов прямо из вашего дома! У нас вы найдете широкий выбор фильмов в различных жанрах, включая боевики, комедии, драмы, ужасы и многое другое.' %}
+            </p>
+            <a class="btn btn-primary" href="{% url 'ui:movies' %}" role="button">
+                {% translate 'Перейти к фильмам' %}
+            </a>
+        </div>
+        
+    </div>
+{% endblock  %}

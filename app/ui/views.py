@@ -26,7 +26,7 @@ def index(request: HttpRequest) -> HttpResponse:
         HttpResponse: домашняя страница
 
     """
-    return render(request, 'ui/main.html')
+    return render(request, 'ui/index.html')
 
 
 def login(request: HttpRequest) -> HttpResponse:
