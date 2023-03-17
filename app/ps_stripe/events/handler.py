@@ -1,13 +1,17 @@
+import logging
 from datetime import datetime
 
 from django.utils.timezone import make_aware
 
+from ps_stripe import messages as msg
 from ps_stripe.events.models import (InvoiceEvent, SubscriptonEvent,
                                      get_invoice, get_subscription)
 from ps_stripe.events.registry import Event, EventRegistry
 from ps_stripe.models import Customer, Product
 from subscriptions.models import ClientSubscription, PaymentHistory
 from subscriptions.tasks import add_role, delete_role
+
+logger = logging.getLogger(__name__)
 
 
 def create_subscription(data: SubscriptonEvent):
@@ -17,9 +21,19 @@ def create_subscription(data: SubscriptonEvent):
         data: данные события подписки
 
     """
+    try:
+        customer = Customer.objects.get(pk=data.customer)
+    except Customer.DoesNotExist:
+        logger.error(msg.CUSTOMER_NOT_FOUND)
+        return
+
+    try:
+        product = Product.objects.get(pk=data.plan.product)
+    except Product.DoesNotExist:
+        logger.error(msg.PRODUCT_NOT_FOUND)
+        return
+
     stripe_subscription_id = data.id
-    customer = Customer.objects.get(pk=data.customer)
-    product = Product.objects.get(pk=data.plan.product)
     start_date = datetime.fromtimestamp(data.current_period_start)
     end_date = datetime.fromtimestamp(data.current_period_end)
     auto_renewal = data.cancel_at_period_end
@@ -73,6 +87,7 @@ def delete_subscription(data: SubscriptonEvent):
             payment_system_subscription_id=data.id
         )
     except ClientSubscription.DoesNotExist:
+        logger.error(msg.CLIENT_SUBSCRIPTION_NOT_FOUND)
         return
 
     client_subscription.delete()
@@ -89,10 +104,20 @@ def invoice_paid(data: InvoiceEvent):
         data: данные события счета
 
     """
-    customer = Customer.objects.get(pk=data.customer)
-    product = Product.objects.get(
-        pk=data.lines.data[0].price.product,
-    )
+    try:
+        customer = Customer.objects.get(pk=data.customer)
+    except Customer.DoesNotExist:
+        logger.error(msg.CUSTOMER_NOT_FOUND)
+        return
+
+    try:
+        product = Product.objects.get(
+            pk=data.lines.data[0].price.product,
+        )
+    except Product.DoesNotExist:
+        logger.error(msg.PRODUCT_NOT_FOUND)
+        return
+
     int_payment_amount = data.amount_paid
     currency = data.currency
     payment_dt = make_aware(
