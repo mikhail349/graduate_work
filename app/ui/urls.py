@@ -9,7 +9,9 @@ urlpatterns = [
     path('login/', views.login, name='login'),
     path('logout/', views.logout, name='logout'),
     path('profile/',  views.profile, name='profile'),
-    path('hd_movies/', views.hd_movies, name='hd_movies'),
+    path('movies/', views.movies, name='movies'),
+    path('movie/<int:id>/', views.movie, name='movie'),
+    path('hd_movie/<int:id>/', views.hd_movie, name='hd_movie'),
     path(
         'create_checkout_session/<int:subscription_id>/',
         views.create_checkout_session,

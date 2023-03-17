@@ -5,12 +5,14 @@ from dataclasses import dataclass
 import jwt
 from django.conf import settings
 from django.http import HttpRequest, HttpResponse
+from django.shortcuts import render
 from requests.exceptions import ConnectionError
 
 from ui import messages as msg
 from ui.exceptions import UnauthorizedError
 from ui.services.auth import auth_service
-from ui.utils import redirect_to_login, render_error
+from ui.services.billing import billing_service
+from ui.utils import redirect_to_login, render_error, render_login_error
 
 ACCESS_TOKEN_NAME = settings.BILLING_AUTH_ACCESS_TOKEN_COOKIE_NAME
 REFRESH_TOKEN_NAME = settings.BILLING_AUTH_REFRESH_TOKEN_COOKIE_NAME
@@ -146,7 +148,7 @@ def token_required(function):
     return wrap
 
 
-def token_permission_required(permission_name: str):
+def token_permission_required(permission_name: str, no_access_msg: str):
     """Декоратор проверки прав пользователя из сервиса Auth через cookies."""
     def inner(function):
         @functools.wraps(function)
@@ -184,7 +186,7 @@ def token_permission_required(permission_name: str):
 
                 if not has_permission(user, permission_name):
                     return (
-                        render_error(request, msg.UNAUTHORIZED),
+                        render_no_subscription(request, no_access_msg, user),
                         access_token,
                         refresh_token,
                     )
@@ -196,3 +198,32 @@ def token_permission_required(permission_name: str):
             )
         return wrap
     return inner
+
+
+def render_no_subscription(
+    request: HttpRequest,
+    error_msg: str,
+    user: User
+) -> HttpResponse:
+    """Отрендерить страницу с отсутствием подписки.
+
+    Args:
+        request: http-запрос
+        error_msg: текст ошибки
+
+    Returns:
+        HttpResponse: страница с ошибкой
+
+    """
+    try:
+        subscriptions = billing_service.get_subscriptions(user.access_token)
+    except ConnectionError:
+        return render_error(request, msg.BILLING_SERVICE_OFFLINE)
+    except UnauthorizedError:
+        return render_login_error(request, msg.INVALID_CREDENTIALS)
+
+    context = {
+        'msg': error_msg,
+        'subscriptions': subscriptions,
+    }
+    return render(request, 'ui/no_access.html', context=context)
