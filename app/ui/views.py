@@ -183,7 +183,6 @@ def create_checkout_session(
             'quantity': 1
         }],
     )
-    print(checkout_session.success_url)
     return redirect(checkout_session.url)
 
 
