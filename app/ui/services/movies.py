@@ -3,11 +3,14 @@ import os
 from dataclasses import dataclass
 
 from django.conf import settings
-from django.templatetags.static import static
+
+from ui import messages as msg
+from ui.exceptions import MovieNotFoundError
 
 
 @dataclass
 class Movie:
+    """Класс фильма."""
     id: int
     name: str
     description: str
@@ -17,20 +20,47 @@ class Movie:
 
 
 class MoviesService:
-    def __init__(self):
+    """Сервис фильмов."""
+
+    def __init__(self) -> None:
         self.movies: dict[int, Movie] = {}
 
     def add_movie(self, movie: Movie):
+        """Добавить фильм.
+
+        Args:
+            movie: фильм
+
+        """
         self.movies[movie.id] = movie
 
     def get_movies(self) -> list[Movie]:
-        return self.movies.values()
+        """Получить список фильмов.
+
+        Returns:
+            list[Movie]: список фильмов
+
+        """
+        return list(self.movies.values())
 
     def get_movie(self, id: int) -> Movie:
-        return self.movies.get(id)
+        """Получить фильм по ID.
+
+        Returns:
+            Movie: фильм
+
+        Raises:
+            MovieNotFoundError: фильм не найден
+
+        """
+        if id not in self.movies:
+            raise MovieNotFoundError(msg.MOVIE_NOT_FOUND)
+        return self.movies[id]
+
 
 movies_service = MoviesService()
-movies_path = os.path.join(settings.BASE_DIR, 'ui', 'static', 'ui', 'json', 'movies.json')
+movies_path = os.path.join(settings.BASE_DIR,
+                           'ui', 'static', 'ui', 'json', 'movies.json')
 
 with open(movies_path, encoding='utf-8') as file:
     movies = json.loads(file.read())

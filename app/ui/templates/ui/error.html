@@ -1,7 +1,14 @@
 {% extends 'ui/main.html' %}
+{% load i18n %}
 
 {% block content %}
     <div class="container-lg">
-        {{ error }}
+        
+        <div class="card shadow-sm border-0 rounded-4 h-100 mb-3">
+            <div class="card-body">
+                <h5 class="card-title">{% translate 'Ошибка' %}</h5>
+                <p class="card-text">{{ error }}</p>
+            </div>
+        </div>
     </div>
 {% endblock  %}

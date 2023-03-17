@@ -3,17 +3,17 @@ from django.conf import settings
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils.translation import gettext as _
 from requests.exceptions import ConnectionError
 
 from ps_stripe.models import Customer, Product
 from ui import messages as msg
 from ui.auth import User, token_permission_required, token_required
-from ui.exceptions import UnauthorizedError
+from ui.exceptions import MovieNotFoundError, UnauthorizedError
 from ui.services.auth import auth_service
 from ui.services.billing import billing_service
 from ui.services.movies import movies_service
 from ui.utils import render_error, render_login_error
-from django.utils.translation import gettext as _
 
 
 def index(request: HttpRequest) -> HttpResponse:
@@ -203,8 +203,13 @@ def movies(request: HttpRequest) -> HttpResponse:
 
 @token_required
 def movie(request: HttpRequest, user: User, id: int) -> HttpResponse:
+    try:
+        movie = movies_service.get_movie(id)
+    except MovieNotFoundError:
+        return render_error(request, msg.MOVIE_NOT_FOUND)
+
     context = {
-        'movie': movies_service.get_movie(id),
+        'movie': movie,
         'quality': 'sd',
     }
     return render(request, 'ui/movie.html', context=context)
@@ -215,8 +220,13 @@ def movie(request: HttpRequest, user: User, id: int) -> HttpResponse:
     no_access_msg=_('К сожалению, у Вас нет доступа на просмотр фильмов в HD'),
 )
 def hd_movie(request: HttpRequest, user: User, id: int) -> HttpResponse:
+    try:
+        movie = movies_service.get_movie(id)
+    except MovieNotFoundError:
+        return render_error(request, msg.MOVIE_NOT_FOUND)
+
     context = {
-        'movie': movies_service.get_movie(id),
+        'movie': movie,
         'quality': 'hd',
     }
     return render(request, 'ui/movie.html', context=context)

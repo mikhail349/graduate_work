@@ -1,3 +1,6 @@
 class UnauthorizedError(Exception):
     """Исключение отсутствия доступа."""
-    pass
+
+
+class MovieNotFoundError(Exception):
+    """Исключение отсутствия фильма."""
