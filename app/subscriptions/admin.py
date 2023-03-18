@@ -5,6 +5,11 @@ from subscriptions.models import (ClientSubscription, PaymentHistory,
                                   Subscription)
 
 
+class ClientSubscriptionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'client', 'subscription',
+                    'start_date', 'end_date', 'auto_renewal')
+
+
 class SubscriptionAdmin(admin.ModelAdmin):
     form = SubscriptionForm
     list_display = ('name', 'description', 'duration',
@@ -35,4 +40,4 @@ class PaymentHistoryAdmin(admin.ModelAdmin):
 
 admin.site.register(Subscription, SubscriptionAdmin)
 admin.site.register(PaymentHistory, PaymentHistoryAdmin)
-admin.site.register(ClientSubscription)
+admin.site.register(ClientSubscription, ClientSubscriptionAdmin)

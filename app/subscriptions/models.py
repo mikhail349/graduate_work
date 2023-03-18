@@ -27,20 +27,25 @@ class Subscription(models.Model):
         MONTHLY = 'month', _('месяц')
         YEARLY = 'year', _('год')
 
-    name = models.CharField(max_length=255)
-    description = models.TextField()
+    name = models.CharField(_('Название'), max_length=255)
+    description = models.TextField(_('Описание'))
     duration = models.CharField(
+        _('Продолжительность'),
         max_length=5,
         choices=DurationChoices.choices,
         default=DurationChoices.MONTHLY,
     )
     role_name = models.CharField(
+        _('Название роли'),
         max_length=255,
-        help_text=_('A role name from Auth Service')
+        help_text=_('Название роли из сервиса авторизации'),
     )
-    is_active = models.BooleanField(default=False)
-    int_price = models.IntegerField(help_text=_('Storing in cents'))
-    currency = CurrencyField()
+    is_active = models.BooleanField(_('Активна'), default=False)
+    int_price = models.IntegerField(
+        _('Цена'),
+        help_text=_('Хранится в копейках'),
+    )
+    currency = CurrencyField(_('Валюта'))
 
     @property
     def price(self) -> float:
@@ -61,6 +66,10 @@ class Subscription(models.Model):
         """
         return self.name
 
+    class Meta:
+        verbose_name = _('Подписка')
+        verbose_name_plural = _('Подписки')
+
 
 class ClientSubscription(models.Model):
     """Модель подписки клиента.
@@ -75,21 +84,29 @@ class ClientSubscription(models.Model):
 
     """
 
-    client = models.ForeignKey(Client, on_delete=models.PROTECT)
+    client = models.ForeignKey(
+        Client,
+        on_delete=models.PROTECT,
+        verbose_name=_('Клиент'),
+    )
     subscription = models.ForeignKey(
         Subscription,
         on_delete=models.PROTECT,
-        related_name='clientsubscription'
+        related_name='clientsubscription',
+        verbose_name=_('Подписка'),
     )
-    start_date = models.DateField()
-    end_date = models.DateField()
-    auto_renewal = models.BooleanField(default=True)
+    start_date = models.DateField(_('Начало действия'))
+    end_date = models.DateField(_('Окончание действия'))
+    auto_renewal = models.BooleanField(_('Автопродление'), default=True)
     payment_system_subscription_id = models.CharField(
+        _('ID из платежного сервиса'),
         max_length=255,
         unique=True,
     )
 
     class Meta:
+        verbose_name = _('Подписка клиента')
+        verbose_name_plural = _('Подписки клиентов')
         constraints = [
             models.UniqueConstraint(
                 fields=['client', 'subscription'],
@@ -115,11 +132,21 @@ class PaymentHistory(models.Model):
 
     """
 
-    client = models.ForeignKey(Client, on_delete=models.CASCADE)
-    subscription_name = models.CharField(max_length=255)
-    int_payment_amount = models.IntegerField(help_text=_('Storing in cents'))
-    currency = CurrencyField()
-    payment_dt = models.DateTimeField()
+    client = models.ForeignKey(
+        Client,
+        on_delete=models.CASCADE,
+        verbose_name=_('Клиент'),
+    )
+    subscription_name = models.CharField(
+        _('Название подписки'),
+        max_length=255,
+    )
+    int_payment_amount = models.IntegerField(
+        _('Сумма платежа'),
+        help_text=_('Хранится в копейках'),
+    )
+    currency = CurrencyField(_('Валюта'))
+    payment_dt = models.DateTimeField(_('Дата и время платежа'))
 
     @property
     def payment_amount(self) -> float:
@@ -141,4 +168,5 @@ class PaymentHistory(models.Model):
         return f'{self.client} {self.subscription_name}'
 
     class Meta:
-        verbose_name_plural = _('Payments history')
+        verbose_name = _('История подписки')
+        verbose_name_plural = _('История подписок')

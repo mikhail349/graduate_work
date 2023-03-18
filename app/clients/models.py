@@ -1,15 +1,17 @@
 from django.db import models
+from django.utils.translation import gettext as _
 
 
 class Client(models.Model):
-    """Модель клиента.
+    """Модель клиента из сервиса Auth.
 
     Fields:
-        id: ИД пользователя из сервиса Auth
+        id: ИД пользователя
+        email: эл. почта
 
     """
-    id = models.UUIDField(primary_key=True)
-    email = models.EmailField()
+    id = models.UUIDField(_('ID'), primary_key=True)
+    email = models.EmailField(_('Эл. почта'))
 
     def __str__(self) -> str:
         """Магический метод текстового представления модели.
@@ -19,3 +21,7 @@ class Client(models.Model):
 
         """
         return str(self.email)
+
+    class Meta:
+        verbose_name = _('Клиент')
+        verbose_name_plural = _('Клиенты')
