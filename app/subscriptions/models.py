@@ -41,7 +41,10 @@ class Subscription(models.Model):
         help_text=_('Название роли из сервиса авторизации'),
     )
     is_active = models.BooleanField(_('Активна'), default=False)
-    int_price = models.IntegerField(_('Цена'), help_text=_('Хранится в копейках'))
+    int_price = models.IntegerField(
+        _('Цена'),
+        help_text=_('Хранится в копейках'),
+    )
     currency = CurrencyField(_('Валюта'))
 
     @property
