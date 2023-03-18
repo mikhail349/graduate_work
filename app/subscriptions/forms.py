@@ -28,7 +28,7 @@ class PaymentHistoryForm(forms.ModelForm):
 class SubscriptionForm(forms.ModelForm):
     """Форма подписки."""
 
-    int_price = MoneyField(label=_('Price'))
+    int_price = MoneyField(label=_('Цена'))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
