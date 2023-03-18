@@ -45,5 +45,4 @@ include(
     'components/auth_api.py',
     'components/billing_api.py',
     'components/logger.py',
-    'components/redis.py',
 )
