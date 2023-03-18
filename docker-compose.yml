@@ -1,10 +1,11 @@
 version: '3'
 services:
-  redis:
+  redis_billing:
     image: redis:alpine
     restart: always
     networks:
       - my_network
+    command: --port ${REDIS_PORT}
   pg:
     image: postgres:15.2-alpine3.17
     environment:
