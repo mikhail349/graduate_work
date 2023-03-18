@@ -16,7 +16,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install flake8 mypy types-python-dateutil types-requests
+          pip install flake8 mypy types-python-dateutil types-requests types-redis
       - name: Lint with flake8
         id: flake
         run: |
