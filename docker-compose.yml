@@ -1,10 +1,5 @@
 version: '3'
 services:
-  redis:
-    image: redis:alpine
-    restart: always
-    networks:
-      - my_network
   pg:
     image: postgres:15.2-alpine3.17
     environment:
