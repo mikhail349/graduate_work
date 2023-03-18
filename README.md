@@ -11,7 +11,7 @@
 # Локальный запуск
 
 1. Создать файл `.env` с переменными окружения по аналогии с файлом `.env.example`
-2. Запустить докер `docker compose -f docker-compose.dev.yml -f docker-compose.yml up pg rabbitmq -d`
+2. Запустить докер `docker compose -f docker-compose.dev.yml -f docker-compose.yml up pg rabbitmq redis -d`
 3. Запустить локально [веб-сервис с админ панелью](app/README.md)
 
 # Запуск
