@@ -8,13 +8,13 @@ from requests.exceptions import ConnectionError
 
 
 def with_token(
-    func: Callable[["AuthClient", ...], requests.Response]
-) -> Callable[["AuthClient", ...], requests.Response]:
+    func: Callable[["AuthClient", uuid.UUID, str], requests.Response]
+) -> Callable[["AuthClient", uuid.UUID, str], requests.Response]:
     """Декоратор для вызова метода и сипользованием токена.
     Если запрос с сохраненным токеном возвращает статус UNAUTHORIZED,
     запрашивается новый токен."""
 
-    def wrapper(self: AuthClient, *args, **kwargs) -> requests.Response:
+    def wrapper(self: "AuthClient", *args, **kwargs) -> requests.Response:
         res = func(self, *args, **kwargs)
         if res.status_code == HTTPStatus.UNAUTHORIZED:
             self.token = self.get_token()
