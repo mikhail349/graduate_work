@@ -1,8 +1,8 @@
 version: '3'
 services:
-  redis:
+  redis_billing:
     ports:
-      - 6379:6379
+      - 6380:6380
   pg:
     ports:
       - 5432:5432
