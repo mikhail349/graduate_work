@@ -140,6 +140,7 @@ def portal(request: HttpRequest, user: User) -> HttpResponse:
     customer = Customer.objects.get(client__pk=user.id)
     session = stripe.billing_portal.Session.create(
         customer=customer.pk,
+        configuration=settings.STRIPE['PORTAL_CONFIG_ID'],
         return_url=request.build_absolute_uri(reverse('ui:profile')),
     )
     return redirect(session.url)
