@@ -9,6 +9,7 @@ from rest_framework.views import APIView
 
 from ps_stripe import messages as msg
 from ps_stripe.events.handler import event_registry
+from services.redis_service import redis_service
 
 logger = logging.getLogger(__name__)
 
@@ -43,5 +44,6 @@ class StripeAPI(APIView):
             except Exception as e:
                 logger.error(str(e))
                 return Response(status=HTTPStatus.BAD_REQUEST)
+            redis_service.put(event['id'])
 
         return Response()
