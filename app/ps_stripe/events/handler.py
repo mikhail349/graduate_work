@@ -40,13 +40,13 @@ def create_subscription(data: SubscriptonEvent):
         customer = Customer.objects.get(pk=data.customer)
     except Customer.DoesNotExist:
         log_error(msg.CUSTOMER_NOT_FOUND, data)
-        return
+        raise
 
     try:
         product = Product.objects.get(pk=data.plan.product)
     except Product.DoesNotExist:
         log_error(msg.PRODUCT_NOT_FOUND, data)
-        return
+        raise
 
     stripe_subscription_id = data.id
     start_date = datetime.fromtimestamp(data.current_period_start)
@@ -83,7 +83,7 @@ def update_subscription(data: SubscriptonEvent):
         )
     except ClientSubscription.DoesNotExist:
         log_error(msg.CLIENT_SUBSCRIPTION_NOT_FOUND, data)
-        return
+        raise
 
     client_subscription.start_date = start_date
     client_subscription.end_date = end_date
@@ -104,7 +104,7 @@ def delete_subscription(data: SubscriptonEvent):
         )
     except ClientSubscription.DoesNotExist:
         log_error(msg.CLIENT_SUBSCRIPTION_NOT_FOUND, data)
-        return
+        raise
 
     client_subscription.delete()
     delete_role.delay(
@@ -124,7 +124,7 @@ def invoice_paid(data: InvoiceEvent):
         customer = Customer.objects.get(pk=data.customer)
     except Customer.DoesNotExist:
         log_error(msg.CUSTOMER_NOT_FOUND, data)
-        return
+        raise
 
     try:
         product = Product.objects.get(
@@ -132,7 +132,7 @@ def invoice_paid(data: InvoiceEvent):
         )
     except Product.DoesNotExist:
         log_error(msg.PRODUCT_NOT_FOUND, data)
-        return
+        raise
 
     int_payment_amount = data.amount_paid
     currency = data.currency

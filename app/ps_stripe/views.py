@@ -36,8 +36,12 @@ class StripeAPI(APIView):
 
         registered_event = event_registry.get_event(event['type'])
         if registered_event:
-            registered_event.handler(
-                registered_event.transformer(event['data']['object'])
-            )
+            try:
+                registered_event.handler(
+                    registered_event.transformer(event['data']['object'])
+                )
+            except Exception as e:
+                logger.error(str(e))
+                return Response(status=HTTPStatus.BAD_REQUEST)
 
         return Response()
