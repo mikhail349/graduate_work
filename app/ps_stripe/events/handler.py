@@ -14,18 +14,15 @@ from subscriptions.tasks import add_role, delete_role
 logger = logging.getLogger(__name__)
 
 
-def log_error(message: str, stripe_data: BaseEvent):
+def log_error(error_message: str, stripe_data: BaseEvent):
     """Добавить сообщение в лог.
 
     Args:
-        message: текст сообщения
+        error_message: текст сообщения
         stripe_data: входные данные из stripe
 
     """
-    message = '{} {}'.format(
-        msg.CUSTOMER_NOT_FOUND,
-        stripe_data.json(),
-    )
+    message = '{} {}'.format(error_message, stripe_data.json())
     logger.error(message)
 
 
