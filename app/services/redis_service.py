@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import backoff
 import redis
@@ -21,7 +21,7 @@ class RedisService:
     def put(
         self,
         key: str,
-        value: Optional[Any] = '',
+        value: Union[bytes, float, int, str] = '',
         timeout: Optional[int] = settings.REDIS_CACHE_TIMEOUT,
     ):
         """Записать данные.
