@@ -169,8 +169,35 @@ def token_permission_required(permission_name: str, no_access_msg: str):
             *args,
             **kwargs
         ) -> tuple[HttpResponse, str, str]:
-
             if not has_permission(user, permission_name):
+                try:
+                    access_token, refresh_token = (
+                        auth_service.refresh(refresh_token)
+                    )
+                    user = get_user(access_token)
+                except ConnectionError:
+                    return (
+                        render_error(request, msg.AUTH_SERVICE_OFFLINE),
+                        access_token,
+                        refresh_token,
+                    )
+                except (
+                    jwt.InvalidTokenError,
+                    jwt.ExpiredSignatureError,
+                    UnauthorizedError
+                ):
+                    return (
+                        redirect_to_login(request),
+                        access_token,
+                        refresh_token,
+                    )
+
+                if not has_permission(user, permission_name):
+                    return (
+                        render_no_subscription(request, no_access_msg, user),
+                        access_token,
+                        refresh_token,
+                    )
                 return (
                     render_no_subscription(request, no_access_msg, user),
                     access_token,
