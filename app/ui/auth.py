@@ -69,7 +69,8 @@ def get_user(access_token: str) -> User:
 
 def get_user_with_tokens(
     access_token: str,
-    refresh_token: str
+    refresh_token: str,
+    force_refresh: bool = False,
 ) -> tuple[User, str, str]:
     """
     Получить пользователя и токены (новые в случае истечения срока).
@@ -83,6 +84,8 @@ def get_user_with_tokens(
 
     """
     try:
+        if force_refresh:
+            access_token, refresh_token = auth_service.refresh(refresh_token)
         user = get_user(access_token)
     except jwt.ExpiredSignatureError:
         access_token, refresh_token = auth_service.refresh(refresh_token)
@@ -90,7 +93,7 @@ def get_user_with_tokens(
     return user, access_token, refresh_token
 
 
-def parse_tokens(function):
+def parse_tokens(force_refresh: bool = False):
     """Декоратор аутентификации пользователя из сервиса Auth через cookies.
 
     Проверяет access-токен на валидность.
@@ -101,58 +104,44 @@ def parse_tokens(function):
 
     После этого, обновляет cookies полученными токенами.
     """
-    @functools.wraps(function)
-    def wrap(request: HttpRequest, *args, **kwargs) -> HttpResponse:
-        try:
-            user, access_token, refresh_token = get_user_with_tokens(
-                access_token=request.COOKIES.get(ACCESS_TOKEN_NAME),
-                refresh_token=request.COOKIES.get(REFRESH_TOKEN_NAME),
-            )
-        except ConnectionError:
-            return render_error(request, msg.AUTH_SERVICE_OFFLINE)
-        except (jwt.InvalidTokenError, jwt.ExpiredSignatureError):
-            return redirect_to_login(request)
-        except UnauthorizedError:
-            return render_error(request, msg.UNAUTHORIZED)
-
-        response, access_token, refresh_token = (
-            function(
-                request,
-                user,
-                access_token,
-                refresh_token,
-                *args,
-                **kwargs,
-            )
-        )
-        response.set_cookie(ACCESS_TOKEN_NAME, access_token)
-        response.set_cookie(REFRESH_TOKEN_NAME, refresh_token)
-        return response
-    return wrap
-
-
-def token_required(function):
-    """Декоратор аутентификации пользователя из сервиса Auth через cookies."""
-    @functools.wraps(function)
-    @parse_tokens
-    def wrap(
-        request: HttpRequest,
-        user: User,
-        access_token: str,
-        refresh_token: str,
-        *args,
-        **kwargs
-    ) -> tuple[HttpResponse, str, str]:
-        response = function(request, user, *args, **kwargs)
-        return response, access_token, refresh_token
-    return wrap
-
-
-def token_permission_required(permission_name: str, no_access_msg: str):
-    """Декоратор проверки прав пользователя из сервиса Auth через cookies."""
     def inner(function):
         @functools.wraps(function)
-        @parse_tokens
+        def wrap(request: HttpRequest, *args, **kwargs) -> HttpResponse:
+            try:
+                user, access_token, refresh_token = get_user_with_tokens(
+                    access_token=request.COOKIES.get(ACCESS_TOKEN_NAME),
+                    refresh_token=request.COOKIES.get(REFRESH_TOKEN_NAME),
+                    force_refresh=force_refresh,
+                )
+            except ConnectionError:
+                return render_error(request, msg.AUTH_SERVICE_OFFLINE)
+            except (jwt.InvalidTokenError, jwt.ExpiredSignatureError):
+                return redirect_to_login(request)
+            except UnauthorizedError:
+                return render_error(request, msg.UNAUTHORIZED)
+
+            response, access_token, refresh_token = (
+                function(
+                    request,
+                    user,
+                    access_token,
+                    refresh_token,
+                    *args,
+                    **kwargs,
+                )
+            )
+            response.set_cookie(ACCESS_TOKEN_NAME, access_token)
+            response.set_cookie(REFRESH_TOKEN_NAME, refresh_token)
+            return response
+        return wrap
+    return inner
+
+
+def token_required(force_refresh: bool = False):
+    """Декоратор аутентификации пользователя из сервиса Auth через cookies."""
+    def inner(function):
+        @functools.wraps(function)
+        @parse_tokens(force_refresh)
         def wrap(
             request: HttpRequest,
             user: User,
@@ -161,35 +150,32 @@ def token_permission_required(permission_name: str, no_access_msg: str):
             *args,
             **kwargs
         ) -> tuple[HttpResponse, str, str]:
-            if not has_permission(user, permission_name):
-                try:
-                    access_token, refresh_token = (
-                        auth_service.refresh(refresh_token)
-                    )
-                    user = get_user(access_token)
-                except ConnectionError:
-                    return (
-                        render_error(request, msg.AUTH_SERVICE_OFFLINE),
-                        access_token,
-                        refresh_token,
-                    )
-                except (
-                    jwt.InvalidTokenError,
-                    jwt.ExpiredSignatureError,
-                    UnauthorizedError
-                ):
-                    return (
-                        redirect_to_login(request),
-                        access_token,
-                        refresh_token,
-                    )
+            response = function(request, user, *args, **kwargs)
+            return response, access_token, refresh_token
+        return wrap
+    return inner
 
-                if not has_permission(user, permission_name):
-                    return (
-                        render_no_subscription(request, no_access_msg, user),
-                        access_token,
-                        refresh_token,
-                    )
+
+def token_permission_required(permission_name: str, no_access_msg: str):
+    """Декоратор проверки прав пользователя из сервиса Auth через cookies."""
+    def inner(function):
+        @functools.wraps(function)
+        @parse_tokens()
+        def wrap(
+            request: HttpRequest,
+            user: User,
+            access_token: str,
+            refresh_token: str,
+            *args,
+            **kwargs
+        ) -> tuple[HttpResponse, str, str]:
+
+            if not has_permission(user, permission_name):
+                return (
+                    render_no_subscription(request, no_access_msg, user),
+                    access_token,
+                    refresh_token,
+                )
 
             return (
                 function(request, user, *args, **kwargs),

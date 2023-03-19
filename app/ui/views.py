@@ -69,7 +69,7 @@ def login(request: HttpRequest) -> HttpResponse:
         return response
 
 
-@token_required
+@token_required()
 def logout(request: HttpRequest, user: User) -> HttpResponse:
     """View логаута.
 
@@ -95,7 +95,7 @@ def logout(request: HttpRequest, user: User) -> HttpResponse:
         return response
 
 
-@token_required
+@token_required()
 def profile(request: HttpRequest, user: User) -> HttpResponse:
     """View страницы профиля пользователя.
 
@@ -125,7 +125,7 @@ def profile(request: HttpRequest, user: User) -> HttpResponse:
     return render(request, 'ui/profile.html', context=context)
 
 
-@token_required
+@token_required()
 def portal(request: HttpRequest, user: User) -> HttpResponse:
     """View портала подписок пользователя.
 
@@ -146,7 +146,7 @@ def portal(request: HttpRequest, user: User) -> HttpResponse:
     return redirect(session.url)
 
 
-@token_required
+@token_required()
 def create_checkout_session(
     request: HttpRequest,
     user: User,
@@ -174,9 +174,17 @@ def create_checkout_session(
     product = Product.objects.get(subscription__id=subscription_id)
     customer = Customer.objects.get(client__pk=user.id)
     stripe_product = stripe.Product.retrieve(product.pk)
+    success_url = (
+        '{url}?subscription_name={subscription_name}&next={next}'.format(
+            url=reverse('ui:success'),
+            subscription_name=product.subscription.name,
+            next=next,
+        )
+    )
+
     checkout_session = stripe.checkout.Session.create(
         customer=customer.pk,
-        success_url=request.build_absolute_uri(next),
+        success_url=request.build_absolute_uri(success_url),
         cancel_url=request.build_absolute_uri(next),
         mode='subscription',
         line_items=[{
@@ -185,6 +193,11 @@ def create_checkout_session(
         }],
     )
     return redirect(checkout_session.url)
+
+
+@token_required(force_refresh=True)
+def success(request: HttpRequest, user: User) -> HttpResponse:
+    return render(request, 'ui/success.html')
 
 
 def movies(request: HttpRequest) -> HttpResponse:
@@ -202,7 +215,7 @@ def movies(request: HttpRequest) -> HttpResponse:
     return render(request, 'ui/movies.html', context=context)
 
 
-@token_required
+@token_required()
 def movie(request: HttpRequest, user: User, id: int) -> HttpResponse:
     try:
         movie = movies_service.get_movie(id)

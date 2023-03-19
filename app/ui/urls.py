@@ -17,5 +17,6 @@ urlpatterns = [
         views.create_checkout_session,
         name='create_checkout_session'
     ),
-    path('portal/', views.portal, name='portal')
+    path('portal/', views.portal, name='portal'),
+    path('success/', views.success, name='success'),
 ]
