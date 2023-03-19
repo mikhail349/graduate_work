@@ -54,6 +54,17 @@ class AuthClient:
         access_token = res.json()["access_token"]
         return access_token
 
+    def get_headers(self) -> dict | None:
+        """Получить заголовки запроса.
+
+        Returns:
+            dict | None: заголовки запроса или None
+
+        """
+        if self.token is None:
+            return None
+        return {"Authorization": "Bearer {}".format(self.token)}
+
     @with_token
     def add_user_role(
         self, user_id: uuid.UUID, role_name: str
@@ -68,12 +79,11 @@ class AuthClient:
             ответ от api сервиса auth
 
         """
-        headers = {"Authorization": "Bearer {}".format(self.token)}
         return requests.post(
             self.user_roles_endpoint.format(
                 user_id=user_id, role_name=role_name
             ),
-            headers=headers,
+            headers=self.get_headers(),
         )
 
     @with_token
@@ -90,12 +100,11 @@ class AuthClient:
             ответ от api сервиса auth
 
         """
-        headers = {"Authorization": "Bearer {}".format(self.token)}
         return requests.delete(
             self.user_roles_endpoint.format(
                 user_id=user_id, role_name=role_name
             ),
-            headers=headers,
+            headers=self.get_headers(),
         )
 
 
