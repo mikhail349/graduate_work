@@ -14,9 +14,9 @@ sequenceDiagram
     Billing -->> Stripe: 3. Формирование заказа
     Stripe -->> Client: 4. Страница для оплаты
     Client -->> Stripe: 5. Совершение оплаты
-    Stripe -->> Billing: 5. Событие оплаты
-    Billing -->> Auth: 6. Обновление прав
-    Auth -->> UI: 7. Новый токен с правами
+    Stripe -->> Billing: 6. Событие оплаты
+    Billing -->> Auth: 7. Обновление прав
+    Auth -->> UI: 8. Новый токен с правами
 ```
 
 ```mermaid
@@ -36,7 +36,7 @@ sequenceDiagram
     Stripe -->> Client: 4. Страница для управления подписками
     Client -->> Stripe: 5. Отмена подписки
     Note over Client, Auth: Подписка активна до окончания оплаченного периода
-    Stripe -->> Billing: 5. Событие отмены
-    Billing -->> Auth: 6. Обновление прав
-    Auth -->> UI: 7. Новый токен с правами
+    Stripe -->> Billing: 6. Событие отмены
+    Billing -->> Auth: 7. Обновление прав
+    Auth -->> UI: 8. Новый токен с правами
 ```
