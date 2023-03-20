@@ -26,7 +26,6 @@ class User:
     permissions: list[str]
     is_superuser: bool
     access_token: str
-    refresh_token: str
 
 
 def has_permission(user: User, permission_name: str) -> bool:
@@ -43,12 +42,11 @@ def has_permission(user: User, permission_name: str) -> bool:
     return user.is_superuser or permission_name in user.permissions
 
 
-def get_user(access_token: str, refresh_token: str) -> User:
+def get_user(access_token: str) -> User:
     """Получить пользователя из access-токена.
 
     Args:
         access_token: access-токен
-        refresh_token: refresh-токен
 
     Returns:
         User: пользователь
@@ -66,49 +64,51 @@ def get_user(access_token: str, refresh_token: str) -> User:
         permissions=payload['permissions'],
         is_superuser=payload['is_superuser'],
         access_token=access_token,
-        refresh_token=refresh_token,
     )
 
 
 def get_user_with_tokens(
     access_token: str,
     refresh_token: str,
-    force_refresh: bool,
-) -> User:
+    force_refresh: bool = False,
+) -> tuple[User, str, str]:
     """
     Получить пользователя и токены (новые в случае истечения срока).
 
     Args:
         access_token: access-токен
         refresh_token: refresh-токен
-        force_refresh: принудительно обновить токен
 
     Returns:
-        User: пользователь
+        tuple[User, str, str]: пользователь, access-токен, refresh-токен
 
     """
     try:
         if force_refresh:
             access_token, refresh_token = auth_service.refresh(refresh_token)
-        user = get_user(access_token, refresh_token)
+        user = get_user(access_token)
     except jwt.ExpiredSignatureError:
         access_token, refresh_token = auth_service.refresh(refresh_token)
-        user = get_user(access_token, refresh_token)
-    return user
+        user = get_user(access_token)
+    return user, access_token, refresh_token
 
 
-def token_required(force_refresh: bool = False):
+def parse_tokens(force_refresh: bool = False):
     """Декоратор аутентификации пользователя из сервиса Auth через cookies.
 
-    Args:
-        force_refresh: принудительно обновить токен. По-умолчанию False
+    Проверяет access-токен на валидность.
+    При истечении срока получает новые access- и refresh-токены.
 
+    Испольузется в декораторах доступа, которые должны принять и
+    вернуть пару токенов вместе с http-ответом.
+
+    После этого, обновляет cookies полученными токенами.
     """
     def inner(function):
         @functools.wraps(function)
-        def wrap(request: HttpRequest, *args, **kwargs):
+        def wrap(request: HttpRequest, *args, **kwargs) -> HttpResponse:
             try:
-                user = get_user_with_tokens(
+                user, access_token, refresh_token = get_user_with_tokens(
                     access_token=request.COOKIES.get(ACCESS_TOKEN_NAME),
                     refresh_token=request.COOKIES.get(REFRESH_TOKEN_NAME),
                     force_refresh=force_refresh,
@@ -120,29 +120,95 @@ def token_required(force_refresh: bool = False):
             except UnauthorizedError:
                 return render_error(request, msg.UNAUTHORIZED)
 
-            response: HttpResponse = function(request, user, *args, **kwargs)
-            response.set_cookie(ACCESS_TOKEN_NAME, user.access_token)
-            response.set_cookie(REFRESH_TOKEN_NAME, user.refresh_token)
+            response, access_token, refresh_token = (
+                function(
+                    request,
+                    user,
+                    access_token,
+                    refresh_token,
+                    *args,
+                    **kwargs,
+                )
+            )
+            response.set_cookie(ACCESS_TOKEN_NAME, access_token)
+            response.set_cookie(REFRESH_TOKEN_NAME, refresh_token)
             return response
         return wrap
     return inner
 
 
-def token_permission_required(permission_name: str, no_access_msg: str):
-    """Декоратор проверки прав пользователя из сервиса Auth через cookies.
-
-    Args:
-        permission_name: имя права
-        no_access_msg: текст сообщения в случае отсутствия права
-
-    """
+def token_required(force_refresh: bool = False):
+    """Декоратор аутентификации пользователя из сервиса Auth через cookies."""
     def inner(function):
         @functools.wraps(function)
-        @token_required()
-        def wrap(request: HttpRequest, user: User, *args, **kwargs):
+        @parse_tokens(force_refresh)
+        def wrap(
+            request: HttpRequest,
+            user: User,
+            access_token: str,
+            refresh_token: str,
+            *args,
+            **kwargs
+        ) -> tuple[HttpResponse, str, str]:
+            response = function(request, user, *args, **kwargs)
+            return response, access_token, refresh_token
+        return wrap
+    return inner
+
+
+def token_permission_required(permission_name: str, no_access_msg: str):
+    """Декоратор проверки прав пользователя из сервиса Auth через cookies."""
+    def inner(function):
+        @functools.wraps(function)
+        @parse_tokens()
+        def wrap(
+            request: HttpRequest,
+            user: User,
+            access_token: str,
+            refresh_token: str,
+            *args,
+            **kwargs
+        ) -> tuple[HttpResponse, str, str]:
             if not has_permission(user, permission_name):
-                return render_no_subscription(request, no_access_msg, user)
-            return function(request, user, *args, **kwargs)
+                try:
+                    access_token, refresh_token = (
+                        auth_service.refresh(refresh_token)
+                    )
+                    user = get_user(access_token)
+                except ConnectionError:
+                    return (
+                        render_error(request, msg.AUTH_SERVICE_OFFLINE),
+                        access_token,
+                        refresh_token,
+                    )
+                except (
+                    jwt.InvalidTokenError,
+                    jwt.ExpiredSignatureError,
+                    UnauthorizedError
+                ):
+                    return (
+                        redirect_to_login(request),
+                        access_token,
+                        refresh_token,
+                    )
+
+                if not has_permission(user, permission_name):
+                    return (
+                        render_no_subscription(request, no_access_msg, user),
+                        access_token,
+                        refresh_token,
+                    )
+                return (
+                    render_no_subscription(request, no_access_msg, user),
+                    access_token,
+                    refresh_token,
+                )
+
+            return (
+                function(request, user, *args, **kwargs),
+                access_token,
+                refresh_token,
+            )
         return wrap
     return inner
 
@@ -157,7 +223,6 @@ def render_no_subscription(
     Args:
         request: http-запрос
         error_msg: текст ошибки
-        user: пользователь
 
     Returns:
         HttpResponse: страница с ошибкой
