@@ -1,0 +1,16 @@
+{% extends 'ui/main.html' %}
+{% load i18n %}
+
+{% block content %}
+    <div class="container-lg">
+        <div class="card shadow-sm border-0 rounded-4 h-100 mb-3">
+            <div class="card-body">
+                <h5 class="card-title">🎉 {% translate 'Поздравляем!' %}</h5>
+                <p class="card-text">{% translate 'Вы оформили подписку' %} {{ request.GET.subscription_name }}</p>
+                <a class="btn btn-primary" href="{{ request.GET.next }}" role="button">
+                    {% translate 'Вернуться к фильму' %}
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock  %}
